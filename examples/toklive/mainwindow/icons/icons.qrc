@@ -1,0 +1,37 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>TokLive-desktop/index.theme</file>
+        <file>TokLive-desktop/32x32/favorite.png</file>
+        <file>TokLive-desktop/32x32/favorite_checked.png</file>
+        <file>TokLive-desktop/32x32/home.png</file>
+        <file>TokLive-desktop/32x32/home_checked.png</file>
+        <file>TokLive-desktop/32x32/menu.png</file>
+        <file>TokLive-desktop/32x32/search.png</file>
+        <file>TokLive-desktop/32x32@2/favorite.png</file>
+        <file>TokLive-desktop/32x32@2/favorite_checked.png</file>
+        <file>TokLive-desktop/32x32@2/home.png</file>
+        <file>TokLive-desktop/32x32@2/home_checked.png</file>
+        <file>TokLive-desktop/32x32@2/menu.png</file>
+        <file>TokLive-desktop/32x32@2/search.png</file>
+        <file>TokLive-desktop/32x32/close.png</file>
+        <file>TokLive-desktop/32x32@2/close.png</file>
+        <file>TokLive-desktop/32x32/minimize.png</file>
+        <file>TokLive-desktop/32x32@2/minimize.png</file>
+        <file>TokLive-desktop/32x32/maximize.png</file>
+        <file>TokLive-desktop/32x32@2/maximize.png</file>
+        <file>TokLive-desktop/32x32/normalize.png</file>
+        <file>TokLive-desktop/32x32@2/normalize.png</file>
+        <file>TokLive-desktop/32x32/category.png</file>
+        <file>TokLive-desktop/32x32/category_checked.png</file>
+        <file>TokLive-desktop/32x32/community.png</file>
+        <file>TokLive-desktop/32x32/community_checked.png</file>
+        <file>TokLive-desktop/32x32/label.png</file>
+        <file>TokLive-desktop/32x32/label_checked.png</file>
+        <file>TokLive-desktop/32x32@2/category.png</file>
+        <file>TokLive-desktop/32x32@2/category_checked.png</file>
+        <file>TokLive-desktop/32x32@2/community.png</file>
+        <file>TokLive-desktop/32x32@2/community_checked.png</file>
+        <file>TokLive-desktop/32x32@2/label.png</file>
+        <file>TokLive-desktop/32x32@2/label_checked.png</file>
+    </qresource>
+</RCC>

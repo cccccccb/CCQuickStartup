@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>PreloadWindow.qml</file>
+        <file>Countdown.qml</file>
+        <file>PreloadOverlay.qml</file>
+    </qresource>
+</RCC>

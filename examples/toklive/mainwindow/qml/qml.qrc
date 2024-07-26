@@ -1,0 +1,14 @@
+<RCC>
+    <qresource prefix="/">
+        <file>src/MainWindow.qml</file>
+        <file>src/MainPane.qml</file>
+        <file>src/LeftPane.qml</file>
+        <file>src/WindowButtonPane.qml</file>
+        <file>src/RoundAnimateButton.qml</file>
+        <file>src/RightPane.qml</file>
+        <file>src/LogoPane.qml</file>
+        <file>src/PopupPane.qml</file>
+        <file>src/PopupSearchEdit.qml</file>
+        <file>src/LeftNavigationBar.qml</file>
+    </qresource>
+</RCC>

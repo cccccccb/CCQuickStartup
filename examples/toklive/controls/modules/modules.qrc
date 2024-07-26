@@ -1,0 +1,16 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Controls/CheckedAnimateButton.qml</file>
+        <file>Controls/CustomButton.qml</file>
+        <file>Controls/LineEdit.qml</file>
+        <file>Controls/SearchEdit.qml</file>
+        <file>Controls/TokIcon.qml</file>
+        <file>Style/Style.qml</file>
+        <file>Style/desktop/CustomButtonStyle.qml</file>
+        <file>Style/desktop/DesktopStyle.qml</file>
+        <file>Style/desktop/SearchEditStyle.qml</file>
+        <file>Style/mobile/CustomButtonStyle.qml</file>
+        <file>Style/mobile/MobileStyle.qml</file>
+        <file>Style/mobile/SearchEditStyle.qml</file>
+    </qresource>
+</RCC>

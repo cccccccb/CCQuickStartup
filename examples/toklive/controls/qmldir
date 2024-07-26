@@ -1,0 +1,3 @@
+module org.orange.toklive
+plugin TokLivePlugin
+classname TokLivePlugin

@@ -1,0 +1,9 @@
+{
+    "appid": "org.orange.toklive",
+    "descriptor": "TokLive",
+    "version": "v0.0.1",
+    "description": "",
+    "features": [],
+    "changelog": "",
+    "default": true
+}
