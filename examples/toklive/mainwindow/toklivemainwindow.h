@@ -3,15 +3,15 @@
 
 #include <QObject>
 
-#include "ccquickstartupmainwindowinterface.h"
+#include "ccstartupmainwindowinterface.h"
 
 class TokLiveQmlInstance;
 
-class TokLiveMainWindow : public QObject, public CCQuickStartupMainWindowInterface
+class TokLiveMainWindow : public QObject, public CCStartupMainWindowInterface
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID CCQuickStartupMainWindowInterface_iid FILE "plugin.json")
-    Q_INTERFACES(CCQuickStartupMainWindowInterface)
+    Q_PLUGIN_METADATA(IID CCStartupMainWindowInterface_iid FILE "plugin.json")
+    Q_INTERFACES(CCStartupMainWindowInterface)
 
 public:
     explicit TokLiveMainWindow(QObject *parent = nullptr);

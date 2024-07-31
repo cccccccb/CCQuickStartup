@@ -1,5 +1,5 @@
 #include "appstartupinstanceattached.h"
-#include "quickappstartupitem.h"
+#include "appstartupitem.h"
 
 #include <private/qmetaobjectbuilder_p.h>
 #include <private/qqmldata_p.h>
@@ -7,10 +7,10 @@
 #include <private/qqmlpropertycache_p.h>
 #include <private/qquicktransition_p.h>
 
-static QuickAppStartupItem *findStartupRootItem(QObject *obj)
+static AppStartupItem *findStartupRootItem(QObject *obj)
 {
     do {
-        QuickAppStartupItem *item = qobject_cast<QuickAppStartupItem *>(obj);
+        AppStartupItem *item = qobject_cast<AppStartupItem *>(obj);
         if (item)
             return item;
 
@@ -164,7 +164,7 @@ AppStartupInstanceAttached *AppStartupInstanceAttached::qmlAttachedProperties(QO
 {
     AppStartupInstanceAttached *attached = nullptr;
 
-    QuickAppStartupItem *appRootItem = findStartupRootItem(object);
+    AppStartupItem *appRootItem = findStartupRootItem(object);
     if (appRootItem) {
         attached = qobject_cast<AppStartupInstanceAttached*>(qmlAttachedPropertiesObject<AppStartupInstanceAttached>(appRootItem, false));
 

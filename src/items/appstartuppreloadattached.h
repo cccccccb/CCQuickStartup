@@ -10,7 +10,7 @@ QT_BEGIN_NAMESPACE
 class QQuickTransition;
 QT_END_NAMESPACE
 
-class QuickAppStartupItem;
+class AppStartupItem;
 class AppStartupPreloadAttachedPrivate;
 
 class CC_QUICKSTARTUP_EXPORT AppStartupPreloadAttached : public QObject
@@ -20,7 +20,7 @@ class CC_QUICKSTARTUP_EXPORT AppStartupPreloadAttached : public QObject
     Q_PROPERTY(QQmlComponent *loadingOverlay READ loadingOverlay WRITE setLoadingOverlay NOTIFY loadingOverlayChanged FINAL)
     Q_PROPERTY(bool autoExitOverlay READ autoExitOverlay WRITE setAutoExitOverlay NOTIFY autoExitOverlayChanged FINAL)
     Q_PROPERTY(bool overlayExitWhen READ overlayExitWhen WRITE setOverlayExitWhen NOTIFY overlayExitWhenChanged FINAL)
-    Q_PROPERTY(QuickAppStartupItem *startupItem READ startupItem NOTIFY startupItemChanged FINAL)
+    Q_PROPERTY(AppStartupItem *startupItem READ startupItem NOTIFY startupItemChanged FINAL)
     Q_PROPERTY(bool loaded READ loaded NOTIFY loadedChanged FINAL)
 
     QML_ANONYMOUS
@@ -44,8 +44,8 @@ public:
     bool overlayExitWhen() const;
     void setOverlayExitWhen(bool overlayExitWhen);
 
-    QuickAppStartupItem *startupItem() const;
-    void setStartupItem(QuickAppStartupItem *item);
+    AppStartupItem *startupItem() const;
+    void setStartupItem(AppStartupItem *item);
 
     bool loaded() const;
     void setLoaded(bool loaded);

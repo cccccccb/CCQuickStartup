@@ -5,7 +5,7 @@
 #include <QQmlComponent>
 
 #include "ccquickstartup_global.h"
-#include "appstartupcomponentinformation.h"
+#include "items/appstartupcomponentinformation.h"
 
 QT_BEGIN_NAMESPACE
 class QString;

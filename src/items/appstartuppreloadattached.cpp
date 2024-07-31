@@ -1,5 +1,5 @@
 #include "appstartuppreloadattached.h"
-#include "quickappstartupitem.h"
+#include "appstartupitem.h"
 
 #include <QQuickWindow>
 #include <private/qquicktransition_p.h>
@@ -8,13 +8,13 @@ class AppStartupPreloadAttachedPrivate {
 public:
     AppStartupPreloadAttachedPrivate(AppStartupPreloadAttached *qq)
         : _qq(qq)
-        , _startupItem(new QuickAppStartupItem(nullptr))
+        , _startupItem(new AppStartupItem(nullptr))
     {}
 
     AppStartupPreloadAttached *_qq;
     QQuickTransition *_overlayExitedTransition = nullptr;
     QQmlComponent *_loadingOverlay = nullptr;
-    QuickAppStartupItem *_startupItem = nullptr;
+    AppStartupItem *_startupItem = nullptr;
     bool _loaded = false;
     bool _autoExitOverlay = true;
     bool _overlayExitWhen = false;
@@ -85,12 +85,12 @@ void AppStartupPreloadAttached::setOverlayExitWhen(bool overlayExitWhen)
     Q_EMIT overlayExitWhenChanged(overlayExitWhen);
 }
 
-QuickAppStartupItem *AppStartupPreloadAttached::startupItem() const
+AppStartupItem *AppStartupPreloadAttached::startupItem() const
 {
     return dd->_startupItem;
 }
 
-void AppStartupPreloadAttached::setStartupItem(QuickAppStartupItem *item)
+void AppStartupPreloadAttached::setStartupItem(AppStartupItem *item)
 {
     if (dd->_startupItem == item)
         return;

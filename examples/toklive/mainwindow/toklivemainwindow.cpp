@@ -1,8 +1,8 @@
 #include "toklivemainwindow.h"
+#include "appstartupinstance.h"
 
 #include <QIcon>
 #include <QQmlApplicationEngine>
-
 
 TokLiveMainWindow::TokLiveMainWindow(QObject *parent)
     : QObject{parent}

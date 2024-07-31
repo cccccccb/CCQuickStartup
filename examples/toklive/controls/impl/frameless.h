@@ -83,6 +83,7 @@ private:
     // worker and target
     QWindow *           mSelf;
     FramelessWorker *   mWorker;
+    bool                mEnabled = false;
     bool                mCanWindowMove = false;
     bool                mCanWindowResize = false;
 

@@ -15,31 +15,44 @@ TokLivePlugin::TokLivePlugin(QObject *parent)
 
 TokLivePlugin::~TokLivePlugin()
 {
+    if (edgeToEdgeHelper) {
+        delete edgeToEdgeHelper;
+        edgeToEdgeHelper = nullptr;
+    }
 
+    if (tokliveInstance) {
+        delete tokliveInstance;
+        tokliveInstance = nullptr;
+    }
 }
 
-static QObject *edge_to_edge_singleton_type_provider(QQmlEngine *engine, QJSEngine *scriptEngine)
+QObject *TokLivePlugin::edge_to_edge_singleton_type_provider(QQmlEngine *engine, QJSEngine *scriptEngine)
 {
     Q_UNUSED(engine)
     Q_UNUSED(scriptEngine)
+    if (!edgeToEdgeHelper)
+        edgeToEdgeHelper = new EdgeToEdgeModeHelper;
 
-    static EdgeToEdgeModeHelper *instance = new EdgeToEdgeModeHelper;
-    return instance;
+    return edgeToEdgeHelper;
 }
 
-static QObject *toklive_singleton_type_provider(QQmlEngine *engine, QJSEngine *scriptEngine)
+QObject *TokLivePlugin::toklive_singleton_type_provider(QQmlEngine *engine, QJSEngine *scriptEngine)
 {
     Q_UNUSED(engine)
     Q_UNUSED(scriptEngine)
-    static TokLiveQmlInstance *instance = new TokLiveQmlInstance;
-    return instance;
+    if (!tokliveInstance)
+        tokliveInstance = new TokLiveQmlInstance;
+
+    return tokliveInstance;
 }
 
 void TokLivePlugin::registerTypes(const char *uri)
 {
     // @uri org.orange.toklive
-    qmlRegisterSingletonType<EdgeToEdgeModeHelper *>(uri, 1, 0, "EdgeToEdge", edge_to_edge_singleton_type_provider);
-    qmlRegisterSingletonType<TokLiveQmlInstance *>(uri, 1, 0, "TokLive", toklive_singleton_type_provider);
+    qmlRegisterSingletonType<EdgeToEdgeModeHelper *>(uri, 1, 0, "EdgeToEdge", std::bind(&TokLivePlugin::edge_to_edge_singleton_type_provider, this,
+                                                                                        std::placeholders::_1, std::placeholders::_2));
+    qmlRegisterSingletonType<TokLiveQmlInstance *>(uri, 1, 0, "TokLive", std::bind(&TokLivePlugin::toklive_singleton_type_provider, this,
+                                                                                   std::placeholders::_1, std::placeholders::_2));
     qmlRegisterSingletonType(QUrl("qrc:///Style/Style.qml"), uri, 1, 0, "Style");
     qmlRegisterUncreatableType<FramelessAttached>(uri, 1, 0, "Frameless", "Frameless is an abstract type that is only available as an attached property.");
 

@@ -8,6 +8,7 @@
 #include <QDebug>
 #include <QTimer>
 #include <QDateTime>
+#include <QGuiApplication>
 
 #ifdef Q_OS_WINDOWS
 #include <dwmapi.h>
@@ -34,25 +35,24 @@ Frameless::Frameless(QWindow *self, QObject *parent)
 
 void Frameless::setEnabled(bool enabled)
 {
+    if (mEnabled == enabled)
+        return;
+
+    mEnabled = enabled;
+
     if (enabled) {
-        if (mWorker->isRunning())
-            return;
-
         mSelf->setFlags(mSelf->flags() | Qt::FramelessWindowHint | Qt::WindowSystemMenuHint);
-        mWorker->start();
-    } else {
         if (!mWorker->isRunning())
-            return;
-
+            mWorker->start();
+    } else {
         mSelf->setFlag(Qt::FramelessWindowHint, false);
         mSelf->setFlag(Qt::WindowSystemMenuHint, false);
-        mWorker->quit();
     }
 }
 
 bool Frameless::enabled() const
 {
-    return mWorker->isRunning();
+    return mEnabled;
 }
 
 void Frameless::setDirection(Direction dir)

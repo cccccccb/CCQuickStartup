@@ -15,7 +15,7 @@ class QQuickWindow;
 QT_END_NAMESPACE
 
 class QuickAppStartupItemPrivate;
-class CC_QUICKSTARTUP_EXPORT QuickAppStartupItem : public QQuickItem
+class CC_QUICKSTARTUP_EXPORT AppStartupItem : public QQuickItem
 {
     Q_OBJECT
     Q_PROPERTY(QQuickWindow *containWindow READ containWindow NOTIFY containWindowChanged)
@@ -23,11 +23,11 @@ class CC_QUICKSTARTUP_EXPORT QuickAppStartupItem : public QQuickItem
     Q_PROPERTY(qreal progress READ progress NOTIFY progressChanged)
     Q_PROPERTY(bool asynchronous READ asynchronous WRITE setAsynchronous NOTIFY asynchronousChanged)
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-    QML_NAMED_ELEMENT(QuickAppStartupItem)
+    QML_NAMED_ELEMENT(AppStartupItem)
 #endif
 
 public:
-    explicit QuickAppStartupItem(QQuickItem *parentItem = nullptr);
+    explicit AppStartupItem(QQuickItem *parentItem = nullptr);
 
     bool loaded() const;
     void setLoaded(bool loaded);

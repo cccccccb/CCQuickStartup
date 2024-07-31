@@ -1,17 +1,17 @@
-#include "quickappstartupitem.h"
+#include "appstartupitem.h"
 
-QuickAppStartupItem::QuickAppStartupItem(QQuickItem *parentItem)
+AppStartupItem::AppStartupItem(QQuickItem *parentItem)
     : QQuickItem(parentItem)
 {
 
 }
 
-bool QuickAppStartupItem::loaded() const
+bool AppStartupItem::loaded() const
 {
     return _loaded;
 }
 
-void QuickAppStartupItem::setLoaded(bool loaded)
+void AppStartupItem::setLoaded(bool loaded)
 {
     if (loaded == this->_loaded)
         return;
@@ -19,12 +19,12 @@ void QuickAppStartupItem::setLoaded(bool loaded)
     Q_EMIT loadedChanged();
 }
 
-qreal QuickAppStartupItem::progress() const
+qreal AppStartupItem::progress() const
 {
     return this->_progress;
 }
 
-void QuickAppStartupItem::setProgress(qreal progress)
+void AppStartupItem::setProgress(qreal progress)
 {
     if (qFuzzyCompare(progress, this->_progress))
         return;
@@ -32,12 +32,12 @@ void QuickAppStartupItem::setProgress(qreal progress)
     Q_EMIT progressChanged();
 }
 
-QQuickWindow *QuickAppStartupItem::containWindow() const
+QQuickWindow *AppStartupItem::containWindow() const
 {
     return this->_window;
 }
 
-void QuickAppStartupItem::setContainWindow(QQuickWindow *w)
+void AppStartupItem::setContainWindow(QQuickWindow *w)
 {
     if (w == this->_window)
         return;
@@ -45,12 +45,12 @@ void QuickAppStartupItem::setContainWindow(QQuickWindow *w)
     Q_EMIT containWindowChanged();
 }
 
-bool QuickAppStartupItem::asynchronous() const
+bool AppStartupItem::asynchronous() const
 {
     return this->_asynchronous;
 }
 
-void QuickAppStartupItem::setAsynchronous(bool a)
+void AppStartupItem::setAsynchronous(bool a)
 {
     if (a == this->_asynchronous)
         return;
