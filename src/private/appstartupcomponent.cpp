@@ -93,7 +93,7 @@ QQmlContext *AppStartupComponent::transitionGroupContextFromBinder()
     }
 }
 
-void AppStartupComponent::initialItemProperties(QQuickItem *item, QQmlComponent *component, AppStartupInitialProperties *initialProperties)
+void AppStartupComponent::initialItemProperties(QQuickItem *item, AppStartupInitialProperties *initialProperties)
 {
     if (!transitionGroup || !initialProperties)
         return;
@@ -105,13 +105,23 @@ void AppStartupComponent::initialItemProperties(QQuickItem *item, QQmlComponent 
         rootPropertyHash.insert(QString::fromLatin1(mtProp.name()), index);
     }
 
-    QVariantMap propertiesMap;
     const QMetaObject *initMetaObject = initialProperties->metaObject();
     for (int index = initMetaObject->propertyOffset(); index < initMetaObject->propertyCount(); ++index) {
         const QMetaProperty &mtProp = initMetaObject->property(index);
         const QString &dynamicProperty = QString::fromLatin1(mtProp.name());
         if (rootPropertyHash.contains(dynamicProperty)) {
-            propertiesMap.insert(dynamicProperty, mtProp.read(initialProperties));
+            if (mtProp.isBindable() && mtProp.bindable(item).hasBinding()) {
+                auto binding = mtProp.bindable(item).takeBinding();
+                qWarning() << "The item [" << item << "] has bind the property ["
+                           << dynamicProperty << "], but initial propeties needed it, removed!";
+            }
+
+            QQmlProperty prop(item, dynamicProperty, qmlEngine(item));
+            QQmlPropertyPrivate *privProp = QQmlPropertyPrivate::get(prop);
+            const bool isValid = prop.isValid();
+            if (isValid) {
+                privProp->writeValueProperty(mtProp.read(initialProperties), {});
+            }
         } else if (!dynamicProperty.startsWith(QLatin1String("_private"))
                    && !dynamicProperty.startsWith(QLatin1String("target"))) {
             qWarning() << "Dont find the propert: [" << dynamicProperty << "], from the target: " << item;
@@ -119,8 +129,6 @@ void AppStartupComponent::initialItemProperties(QQuickItem *item, QQmlComponent 
     }
 
     //! ##TODO: support the vme meta properties.
-    if (!propertiesMap.isEmpty())
-        component->setInitialProperties(item, propertiesMap);
 }
 
 void AppStartupComponent::transitionFinishedImpl()
@@ -162,6 +170,7 @@ bool AppStartupComponent::startTransition(TrasitionBeginMode mode)
 
     transitionManager = new AppStartUpTransitionManager(nullptr);
     transitionManager->setFinishedCallback(std::bind(&AppStartupComponent::transitionFinishedImpl, this));
+    beforeTransition();
     transitionManager->transition({}, transition, transitionItem);
     return true;
 }

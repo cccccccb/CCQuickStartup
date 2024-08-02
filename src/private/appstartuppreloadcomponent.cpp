@@ -98,6 +98,12 @@ void AppStartupPreloadComponent::transitionFinish()
     }
 }
 
+void AppStartupPreloadComponent::beforeTransition()
+{
+    if (transitionGroup)
+        initialItemProperties(loadingOverlay, transitionGroup->leaveInitialProperties());
+}
+
 void AppStartupPreloadComponent::load()
 {
     const AppStartupComponentInformation &pluginInfo = this->information;
@@ -218,9 +224,6 @@ void AppStartupPreloadComponent::createOverlay()
     loadingOverlay = qobject_cast<QQuickItem *>(loComponent->beginCreate(context));
     if (!loadingOverlay)
         return;
-
-    if (transitionGroup)
-        initialItemProperties(loadingOverlay, loComponent, transitionGroup->leaveInitialProperties());
 
     loadingOverlay->setParentItem(dd->windowContentItem);
     loadingOverlay->setZ(100);

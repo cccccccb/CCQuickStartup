@@ -106,6 +106,12 @@ void AppStartupMainWindowComponent::transitionFinish()
     endOfTransition();
 }
 
+void AppStartupMainWindowComponent::beforeTransition()
+{
+    if (transitionGroup)
+        initialItemProperties(appRootItem, transitionGroup->enterInitialProperties());
+}
+
 void AppStartupMainWindowComponent::load()
 {
     const AppStartupComponentInformation &pluginInfo = this->information;
@@ -229,9 +235,6 @@ bool AppStartupMainWindowComponent::createObjects(const char *propertyName)
 
     if (QQmlContext *context = transitionGroupContextFromBinder())
         context->setContextProperty(QLatin1String("enterTarget"), appRootItem);
-
-    if (transitionGroup)
-        initialItemProperties(appRootItem, mainComponent, transitionGroup->enterInitialProperties());
 
     appRootItem->setContainWindow(dd->appWindow);
     appRootItem->setEnabled(false);

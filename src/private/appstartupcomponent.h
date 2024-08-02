@@ -32,6 +32,7 @@ public:
 
     enum TrasitionBeginMode { BeginHead, BeginCurrent };
     virtual bool startTransition(TrasitionBeginMode mode = TrasitionBeginMode::BeginHead);
+    virtual void beforeTransition() {}
     virtual void transitionFinish() {}
 
 protected:
@@ -41,7 +42,7 @@ protected:
 
     void copyTransitionGroupFromBinder();
     QQmlContext *transitionGroupContextFromBinder();
-    void initialItemProperties(QQuickItem *item, QQmlComponent *component, AppStartupInitialProperties *initialProperties);
+    void initialItemProperties(QQuickItem *item, AppStartupInitialProperties *initialProperties);
 
     AppStartupInstance *qq = nullptr;
     AppStartupInstancePrivate *dd = nullptr;

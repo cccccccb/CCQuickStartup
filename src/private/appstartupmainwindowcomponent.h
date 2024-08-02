@@ -21,6 +21,7 @@ public:
 
     AppStartupComponent *transitionLinkPrev() override;
     void transitionFinish() override;
+    void beforeTransition() override;
 
     void load() override;
 

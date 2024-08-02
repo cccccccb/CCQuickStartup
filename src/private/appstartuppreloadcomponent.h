@@ -20,6 +20,7 @@ public:
 
     AppStartupComponent *transitionLinkNext() override;
     void transitionFinish() override;
+    void beforeTransition() override;
 
     virtual void load() override;
 

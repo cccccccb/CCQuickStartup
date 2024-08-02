@@ -10,9 +10,8 @@ public:
     {}
 
     AppStartupTransitionGroup *_qq;
-
-    QQuickTransition *_leave = nullptr;
-    QQuickTransition *_enter = nullptr;
+    QQuickTransition *_d_leave = nullptr;
+    QQuickTransition *_d_enter = nullptr;
     AppStartupInitialProperties *_leaveInitialProperties = nullptr;
     AppStartupInitialProperties *_enterInitialProperties = nullptr;
 };
@@ -29,29 +28,29 @@ AppStartupTransitionGroup::~AppStartupTransitionGroup()
 
 QQuickTransition *AppStartupTransitionGroup::leave() const
 {
-    return dd->_leave;
+    return dd->_d_leave;
 }
 
 void AppStartupTransitionGroup::setLeave(QQuickTransition *leave)
 {
-    if (dd->_leave == leave)
+    if (dd->_d_leave == leave)
         return;
 
-    dd->_leave = leave;
+    dd->_d_leave = leave;
     Q_EMIT leaveChanged();
 }
 
 QQuickTransition *AppStartupTransitionGroup::enter() const
 {
-    return dd->_enter;
+    return dd->_d_enter;
 }
 
 void AppStartupTransitionGroup::setEnter(QQuickTransition *enter)
 {
-    if (dd->_enter == enter)
+    if (dd->_d_enter == enter)
         return;
 
-    dd->_enter = enter;
+    dd->_d_enter = enter;
     Q_EMIT enterChanged();
 }
 
