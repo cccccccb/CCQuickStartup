@@ -1,8 +1,13 @@
 #include "appstartupcomponent.h"
 #include "appstartupinstance_p.h"
 #include "appstartuptransitionmanager.h"
+#include "items/appstartupitem.h"
+#include "items/appstartuppreloadattached.h"
+#include "items/appstartupinitialproperties.h"
+#include "items/appstartuptransitiongroup.h"
 
 #include <private/qquickitem_p.h>
+
 
 static const QQuickItemPrivate::ChangeTypes changedTypes = QQuickItemPrivate::Geometry;
 
@@ -63,6 +68,59 @@ void AppStartupComponent::deinitRootInit(QQuickItem *item)
 {
     QQuickItemPrivate *wp = QQuickItemPrivate::get(item);
     wp->removeItemChangeListener(this, changedTypes);
+}
+
+void AppStartupComponent::copyTransitionGroupFromBinder()
+{
+    transitionGroup = binder() ? binder()->transitionGroup : nullptr;
+}
+
+QQmlContext *AppStartupComponent::transitionGroupContextFromBinder()
+{
+    AppStartupPreloadAttached *attached = qobject_cast<AppStartupPreloadAttached*>(
+        qmlAttachedPropertiesObject<AppStartupPreloadAttached>(dd->appWindow, false));
+    if (!attached)
+        return nullptr;
+
+    QQmlComponent *tgComponent = attached->transitionGroup();
+    if (!tgComponent)
+        return nullptr;
+
+    if (binder()) {
+        return binder()->itemContextMap.value(tgComponent);
+    } else {
+        return itemContextMap.value(tgComponent);;
+    }
+}
+
+void AppStartupComponent::initialItemProperties(QQuickItem *item, QQmlComponent *component, AppStartupInitialProperties *initialProperties)
+{
+    if (!transitionGroup || !initialProperties)
+        return;
+
+    QHash<QString, int> rootPropertyHash;
+    const QMetaObject *itemMetaObject = item->metaObject();
+    for (int index = 0; index < itemMetaObject->propertyCount(); ++index) {
+        const QMetaProperty &mtProp = itemMetaObject->property(index);
+        rootPropertyHash.insert(QString::fromLatin1(mtProp.name()), index);
+    }
+
+    QVariantMap propertiesMap;
+    const QMetaObject *initMetaObject = initialProperties->metaObject();
+    for (int index = initMetaObject->propertyOffset(); index < initMetaObject->propertyCount(); ++index) {
+        const QMetaProperty &mtProp = initMetaObject->property(index);
+        const QString &dynamicProperty = QString::fromLatin1(mtProp.name());
+        if (rootPropertyHash.contains(dynamicProperty)) {
+            propertiesMap.insert(dynamicProperty, mtProp.read(initialProperties));
+        } else if (!dynamicProperty.startsWith(QLatin1String("_private"))
+                   && !dynamicProperty.startsWith(QLatin1String("target"))) {
+            qWarning() << "Dont find the propert: [" << dynamicProperty << "], from the target: " << item;
+        }
+    }
+
+    //! ##TODO: support the vme meta properties.
+    if (!propertiesMap.isEmpty())
+        component->setInitialProperties(item, propertiesMap);
 }
 
 void AppStartupComponent::transitionFinishedImpl()

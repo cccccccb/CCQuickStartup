@@ -57,33 +57,7 @@ Window {
 
     PreloadItem.autoExitOverlay: false
     PreloadItem.overlayExitWhen: !preloadCountdown.running
-    PreloadItem.overlayExited: Transition {
-        SequentialAnimation {
-            ParallelAnimation {
-                NumberAnimation {
-                    duration: Style.item.animationDuration
-                    properties: "scale"
-                    to: 0.6
-                    easing.type: Easing.OutBack
-                    easing.overshoot: 4
-                }
-
-                NumberAnimation {
-                    duration: Style.item.animationDuration
-                    properties: "opacity"
-                    to: 0.8
-                    easing.type: Easing.OutBack
-                    easing.overshoot: 4
-                }
-            }
-
-            NumberAnimation {
-                property: "rotationAngle"
-                to: 90
-                duration: Style.item.animationDuration / 2
-            }
-        }
-    }
+    PreloadItem.transitionGroup:  FlickTransition {}
 
     Countdown {
         id: preloadCountdown

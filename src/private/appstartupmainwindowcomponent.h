@@ -17,7 +17,7 @@ public:
     inline AppStartupComponentInformation::StartComponent componentType() override { return AppStartupComponentInformation::MainWindow; }
 
     QQuickItem *transitionItem() override;
-    inline QQuickTransition *transition() override { return rootDisplayTransition; }
+    QQuickTransition *transition() override;
 
     AppStartupComponent *transitionLinkPrev() override;
     void transitionFinish() override;
@@ -43,8 +43,6 @@ private:
     QScopedPointer<CCStartupMainWindowInterface> mainInstance;
     QQmlComponent *mainComponent = nullptr;
     AppStartupItem *appRootItem = nullptr;
-
-    QQuickTransition *rootDisplayTransition = nullptr;
     QList<QQmlIncubator *> incubators;
 
     int childrenCount = 0;

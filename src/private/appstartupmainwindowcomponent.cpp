@@ -3,8 +3,10 @@
 #include "appstartupinstance_p.h"
 #include "defines_p.h"
 
+#include "items/appstartupinitialproperties.h"
 #include "items/appstartupinstanceattached.h"
 #include "items/appstartuppreloadattached.h"
+#include "items/appstartuptransitiongroup.h"
 #include "items/appstartupitem.h"
 
 #include <QPluginLoader>
@@ -56,7 +58,7 @@ void AppQmlComponentIncubator::statusChanged(QQmlIncubator::Status status)
 
     if (attached) {
         QQmlContext *context = qmlContext(obj);
-        attached->setSubObject(context->nameForObject(obj).toLocal8Bit(), obj);
+        attached->insertSubObject(context->nameForObject(obj).toLocal8Bit(), obj);
     }
 
     mainComponent->_q_onComponentProgressChanged();
@@ -89,6 +91,11 @@ QQuickItem *AppStartupMainWindowComponent::transitionItem()
     return appRootItem;
 }
 
+QQuickTransition *AppStartupMainWindowComponent::transition()
+{
+    return transitionGroup ? transitionGroup->enter() : nullptr;
+}
+
 AppStartupComponent *AppStartupMainWindowComponent::transitionLinkPrev()
 {
     return binder();
@@ -97,11 +104,6 @@ AppStartupComponent *AppStartupMainWindowComponent::transitionLinkPrev()
 void AppStartupMainWindowComponent::transitionFinish()
 {
     endOfTransition();
-
-    if (rootDisplayTransition) {
-        rootDisplayTransition->deleteLater();
-        rootDisplayTransition = nullptr;
-    }
 }
 
 void AppStartupMainWindowComponent::load()
@@ -221,28 +223,30 @@ bool AppStartupMainWindowComponent::createObjects(const char *propertyName)
     if (!pros.isValid())
         return false;
 
+    copyTransitionGroupFromBinder();
     appRootItem = qobject_cast<AppStartupItem *>(mainComponent->beginCreate(creationContext(mainComponent, dd->appWindow)));
     Q_ASSERT_X(appRootItem, "AppStartupInstance", "Must use the AppLoader item in main component.");
+
+    if (QQmlContext *context = transitionGroupContextFromBinder())
+        context->setContextProperty(QLatin1String("enterTarget"), appRootItem);
+
+    if (transitionGroup)
+        initialItemProperties(appRootItem, mainComponent, transitionGroup->enterInitialProperties());
+
     appRootItem->setContainWindow(dd->appWindow);
     appRootItem->setEnabled(false);
     appRootItem->setVisible(false);
+
     mainComponent->completeCreate();
 
-    if (dd->defaultComponentGroup.main() == this->information) {
+    if (dd->defaultComponentGroup.main() == this->information)
         dd->defaultAppStartItem = appRootItem;
 
-        AppStartupPreloadAttached *preloadAttached = qobject_cast<AppStartupPreloadAttached*>(qmlAttachedPropertiesObject<AppStartupPreloadAttached>(dd->appWindow, false));
-        if (preloadAttached) {
-            preloadAttached->setStartupItem(appRootItem);
-        }
+    AppStartupPreloadAttached *preloadAttached = nullptr;
+    if (dd->defaultComponentGroup.main() == this->information) {
+        preloadAttached = qobject_cast<AppStartupPreloadAttached*>(qmlAttachedPropertiesObject<AppStartupPreloadAttached>(dd->appWindow, false));
+        preloadAttached->setStartupItem(appRootItem);
     }
-
-    AppStartupInstanceAttached *itemAttached = qobject_cast<AppStartupInstanceAttached*>(qmlAttachedPropertiesObject<AppStartupInstanceAttached>(appRootItem, false));
-    if (itemAttached)
-        rootDisplayTransition = itemAttached->displayPopulate();
-
-    if (rootDisplayTransition)
-        dd->engine->setObjectOwnership(rootDisplayTransition, QQmlEngine::CppOwnership);
 
     pros.append(appRootItem);
     initRootItem(dd->windowContentItem);

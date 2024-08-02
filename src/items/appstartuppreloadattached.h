@@ -16,7 +16,7 @@ class AppStartupPreloadAttachedPrivate;
 class CC_QUICKSTARTUP_EXPORT AppStartupPreloadAttached : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QQuickTransition *overlayExited READ overlayExited WRITE setOverlayExited NOTIFY overlayExitedChanged FINAL)
+    Q_PROPERTY(QQmlComponent *transitionGroup READ transitionGroup WRITE setTransitionGroup NOTIFY transitionGroupChanged FINAL)
     Q_PROPERTY(QQmlComponent *loadingOverlay READ loadingOverlay WRITE setLoadingOverlay NOTIFY loadingOverlayChanged FINAL)
     Q_PROPERTY(bool autoExitOverlay READ autoExitOverlay WRITE setAutoExitOverlay NOTIFY autoExitOverlayChanged FINAL)
     Q_PROPERTY(bool overlayExitWhen READ overlayExitWhen WRITE setOverlayExitWhen NOTIFY overlayExitWhenChanged FINAL)
@@ -32,8 +32,8 @@ public:
     explicit AppStartupPreloadAttached(QObject *parent = nullptr);
     ~AppStartupPreloadAttached();
 
-    QQuickTransition *overlayExited() const;
-    void setOverlayExited(QQuickTransition *exit);
+    QQmlComponent *transitionGroup() const;
+    void setTransitionGroup(QQmlComponent *transitionGroup);
 
     QQmlComponent *loadingOverlay() const;
     void setLoadingOverlay(QQmlComponent *component);
@@ -53,7 +53,7 @@ public:
     static AppStartupPreloadAttached *qmlAttachedProperties(QObject *object);
 
 Q_SIGNALS:
-    void overlayExitedChanged();
+    void transitionGroupChanged();
     void loadingOverlayChanged();
     void autoExitOverlayChanged(bool changed);
     void overlayExitWhenChanged(bool changed);

@@ -13,13 +13,10 @@ public:
     using AppStartupComponent::AppStartupComponent;
     ~AppStartupPreloadComponent();
 
-    inline AppStartupComponentInformation::StartComponent componentType() override
-    {
-        return AppStartupComponentInformation::Preload;
-    };
+    inline AppStartupComponentInformation::StartComponent componentType() override { return AppStartupComponentInformation::Preload; }
 
     inline QQuickItem *transitionItem() override { return loadingOverlay; }
-    virtual QQuickTransition *transition() override { return overlayExitTransition; }
+    virtual QQuickTransition *transition() override;
 
     AppStartupComponent *transitionLinkNext() override;
     void transitionFinish() override;
@@ -44,7 +41,6 @@ private:
     QQuickItem *loadingOverlay = nullptr;
     QMetaObject::Connection visibleConnection;
     QMetaObject::Connection autoExitConnection;
-    QQuickTransition *overlayExitTransition = nullptr;
     bool overlayUsingParentSize = false;
 };
 

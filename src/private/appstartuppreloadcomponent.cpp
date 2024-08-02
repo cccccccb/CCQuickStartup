@@ -5,6 +5,7 @@
 
 #include "items/appstartuppreloadattached.h"
 #include "items/appstartupitem.h"
+#include "items/appstartuptransitiongroup.h"
 
 #include <QQuickItem>
 #include <QQmlComponent>
@@ -77,6 +78,11 @@ AppStartupPreloadComponent::~AppStartupPreloadComponent()
         deinitRootInit(dd->windowContentItem);
 }
 
+QQuickTransition *AppStartupPreloadComponent::transition()
+{
+    return transitionGroup ? transitionGroup->leave() : nullptr;
+}
+
 AppStartupComponent *AppStartupPreloadComponent::transitionLinkNext()
 {
     return binder();
@@ -85,11 +91,6 @@ AppStartupComponent *AppStartupPreloadComponent::transitionLinkNext()
 void AppStartupPreloadComponent::transitionFinish()
 {
     clearOverlay();
-
-    if (overlayExitTransition) {
-        overlayExitTransition->deleteLater();
-        overlayExitTransition = nullptr;
-    }
 
     if (dd->defaultAppStartItem) {
         dd->defaultAppStartItem->setEnabled(true);
@@ -188,6 +189,23 @@ void AppStartupPreloadComponent::createOverlay()
     if (!attached)
         return;
 
+    QQmlComponent *tgComponent = attached->transitionGroup();
+    QQmlContext *tgContext = nullptr;
+    if (tgComponent) {
+        tgContext = creationContext(tgComponent, dd->windowContentItem);
+        transitionGroup = qobject_cast<AppStartupTransitionGroup *>(tgComponent->beginCreate(tgContext));
+    }
+
+    if (tgContext) {
+        tgContext->setContextProperty("enterTarget", attached->startupItem());
+        tgContext->setContextProperty("leaveTarget", nullptr);
+    } else {
+        qWarning() << "[transitionGroup] only use AppStartupTransitionGroup type!";
+    }
+
+    if (tgComponent)
+        tgComponent->completeCreate();
+
     QQmlComponent *loComponent = attached->loadingOverlay();
     if (!loComponent)
         return;
@@ -201,14 +219,16 @@ void AppStartupPreloadComponent::createOverlay()
     if (!loadingOverlay)
         return;
 
+    if (transitionGroup)
+        initialItemProperties(loadingOverlay, loComponent, transitionGroup->leaveInitialProperties());
+
     loadingOverlay->setParentItem(dd->windowContentItem);
     loadingOverlay->setZ(100);
 
-    loComponent->completeCreate();
+    if (tgContext)
+        tgContext->setContextProperty("leaveTarget", loadingOverlay);
 
-    overlayExitTransition = attached->overlayExited();
-    if (overlayExitTransition)
-        dd->engine->setObjectOwnership(overlayExitTransition, QQmlEngine::CppOwnership);
+    loComponent->completeCreate();
 
     QQuickItemPrivate *overlayPrivate = QQuickItemPrivate::get(loadingOverlay);
     if (!widthValid(overlayPrivate) || !heightValid(overlayPrivate)) {

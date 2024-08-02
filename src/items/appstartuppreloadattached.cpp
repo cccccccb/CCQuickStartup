@@ -2,7 +2,6 @@
 #include "appstartupitem.h"
 
 #include <QQuickWindow>
-#include <private/qquicktransition_p.h>
 
 class AppStartupPreloadAttachedPrivate {
 public:
@@ -12,7 +11,7 @@ public:
     {}
 
     AppStartupPreloadAttached *_qq;
-    QQuickTransition *_overlayExitedTransition = nullptr;
+    QQmlComponent *_transitionGroup = nullptr;
     QQmlComponent *_loadingOverlay = nullptr;
     AppStartupItem *_startupItem = nullptr;
     bool _loaded = false;
@@ -30,17 +29,17 @@ AppStartupPreloadAttached::~AppStartupPreloadAttached()
 
 }
 
-QQuickTransition *AppStartupPreloadAttached::overlayExited() const
+QQmlComponent *AppStartupPreloadAttached::transitionGroup() const
 {
-    return dd->_overlayExitedTransition;
+    return dd->_transitionGroup;
 }
 
-void AppStartupPreloadAttached::setOverlayExited(QQuickTransition *exit)
+void AppStartupPreloadAttached::setTransitionGroup(QQmlComponent *transitionGroup)
 {
-    if (dd->_overlayExitedTransition == exit)
+    if (dd->_transitionGroup == transitionGroup)
         return;
-    dd->_overlayExitedTransition = exit;
-    Q_EMIT overlayExitedChanged();
+    dd->_transitionGroup = transitionGroup;
+    Q_EMIT transitionGroupChanged();
 }
 
 QQmlComponent *AppStartupPreloadAttached::loadingOverlay() const

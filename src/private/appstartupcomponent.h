@@ -8,6 +8,8 @@
 #include "appstartupinstance.h"
 #include "items/appstartupcomponentinformation.h"
 
+class AppStartupInitialProperties;
+class AppStartupTransitionGroup;
 class AppStartUpTransitionManager;
 
 class AppStartupComponent : public QObject, public QQuickItemChangeListener
@@ -37,6 +39,10 @@ protected:
     void initRootItem(QQuickItem *item);
     void deinitRootInit(QQuickItem *item);
 
+    void copyTransitionGroupFromBinder();
+    QQmlContext *transitionGroupContextFromBinder();
+    void initialItemProperties(QQuickItem *item, QQmlComponent *component, AppStartupInitialProperties *initialProperties);
+
     AppStartupInstance *qq = nullptr;
     AppStartupInstancePrivate *dd = nullptr;
 
@@ -46,6 +52,7 @@ protected:
     bool duringTransition = false;
     AppStartUpTransitionManager *transitionManager = nullptr;
     QHash<QQmlComponent *, QQmlContext *> itemContextMap;
+    QPointer<AppStartupTransitionGroup> transitionGroup = nullptr;
 
 private:
     void transitionFinishedImpl();

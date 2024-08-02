@@ -59,7 +59,6 @@ public:
     {}
 
     AppStartupInstanceAttached *_qq;
-    QQuickTransition *_displayPopulateTransition = nullptr;
     bool _loaded = false;
     QMap<QByteArray, QObject *> _objects;
     CustomSubItemMetaObject *_metaObject;
@@ -123,27 +122,14 @@ AppStartupInstanceAttached::AppStartupInstanceAttached(QObject *parent)
 {
     dd->_metaObject->setCached(true);
 
-    QQmlData *qmldata = QQmlData::get(this);
-    Q_ASSERT(qmldata);
-    dd->m_propertyCache = qmldata->propertyCache;
+    // QQmlData *qmldata = QQmlData::get(this);
+    // Q_ASSERT(qmldata);
+    // dd->m_propertyCache = qmldata->propertyCache;
 }
 
 AppStartupInstanceAttached::~AppStartupInstanceAttached()
 {
 
-}
-
-QQuickTransition *AppStartupInstanceAttached::displayPopulate() const
-{
-    return dd->_displayPopulateTransition;
-}
-
-void AppStartupInstanceAttached::setDisplayPopulate(QQuickTransition *transition)
-{
-    if (dd->_displayPopulateTransition == transition)
-        return;
-    dd->_displayPopulateTransition = transition;
-    Q_EMIT displayPopulateChanged();
 }
 
 bool AppStartupInstanceAttached::loaded() const
@@ -175,10 +161,10 @@ AppStartupInstanceAttached *AppStartupInstanceAttached::qmlAttachedProperties(QO
     return attached;
 }
 
-void AppStartupInstanceAttached::setSubObject(const QByteArray &name, QObject *obj)
+void AppStartupInstanceAttached::insertSubObject(const QString &name, QObject *obj)
 {
-    dd->_metaObject->setValue(name, QVariant::fromValue<QObject*>(obj));
-    dd->_objects.insert(name, obj);
+    dd->_metaObject->setValue(name.toUtf8(), QVariant::fromValue<QObject*>(obj));
+    dd->_objects.insert(name.toUtf8(), obj);
 }
 
 #include "moc_appstartupinstanceattached.cpp"

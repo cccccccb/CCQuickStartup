@@ -1,7 +1,3 @@
-// SPDX-FileCopyrightText: 2022 UnionTech Software Technology Co., Ltd.
-//
-// SPDX-License-Identifier: LGPL-3.0-or-later
-
 #ifndef DQUICKAppStartupITEM_H
 #define DQUICKAppStartupITEM_H
 
@@ -14,7 +10,7 @@ class QQmlComponent;
 class QQuickWindow;
 QT_END_NAMESPACE
 
-class QuickAppStartupItemPrivate;
+class AppStartupItemPrivate;
 class CC_QUICKSTARTUP_EXPORT AppStartupItem : public QQuickItem
 {
     Q_OBJECT
@@ -22,12 +18,13 @@ class CC_QUICKSTARTUP_EXPORT AppStartupItem : public QQuickItem
     Q_PROPERTY(bool loaded READ loaded NOTIFY loadedChanged)
     Q_PROPERTY(qreal progress READ progress NOTIFY progressChanged)
     Q_PROPERTY(bool asynchronous READ asynchronous WRITE setAsynchronous NOTIFY asynchronousChanged)
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+
+    QML_ANONYMOUS
     QML_NAMED_ELEMENT(AppStartupItem)
-#endif
 
 public:
     explicit AppStartupItem(QQuickItem *parentItem = nullptr);
+    ~AppStartupItem();
 
     bool loaded() const;
     void setLoaded(bool loaded);
@@ -48,11 +45,7 @@ Q_SIGNALS:
     void asynchronousChanged();
 
 private:
-    QList<QQmlComponent *> _childrenComponents;
-    QQuickWindow *_window = nullptr;
-    bool _loaded = false;
-    bool _asynchronous = false;
-    qreal _progress = 0.0;
+    QScopedPointer<AppStartupItemPrivate> dd;
 };
 
 #endif  // DQUICKAppStartupITEM_H

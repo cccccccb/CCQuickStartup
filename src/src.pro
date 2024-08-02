@@ -21,3 +21,6 @@ HEADERS += \
     ccstartupmainwindowinterface.h \
     ccstartuppreloadinterface.h
 
+RESOURCES += \
+    qml.qrc
+
