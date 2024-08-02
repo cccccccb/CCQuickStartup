@@ -1,5 +1,4 @@
 import QtQuick
-import org.orange.toklive
 
 QtObject {
     readonly property color backgroundColor: "white"

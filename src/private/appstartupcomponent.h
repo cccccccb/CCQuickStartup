@@ -6,10 +6,10 @@
 #include <private/qquickitemchangelistener_p.h>
 
 #include "appstartupinstance.h"
+#include "items/appstartuptransitiongroup.h"
 #include "items/appstartupcomponentinformation.h"
 
 class AppStartupInitialProperties;
-class AppStartupTransitionGroup;
 class AppStartUpTransitionManager;
 
 class AppStartupComponent : public QObject, public QQuickItemChangeListener

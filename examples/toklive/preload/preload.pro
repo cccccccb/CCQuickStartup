@@ -3,7 +3,7 @@ TARGET = TokLive-DesktopPreload
 
 QT += quick
 
-CONFIG += c++17 plugin
+CONFIG += c++17 plugin qtquickcompiler
 DESTDIR = $$CC_TOP_SHADOWED_DIR/bin
 
 QML_IMPORT_PATH += $${CC_TOP_SHADOWED_DIR}/bin/

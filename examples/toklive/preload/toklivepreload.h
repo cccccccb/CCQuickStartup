@@ -17,7 +17,6 @@ public:
 
     void aboutToPreload(QQmlApplicationEngine *engine);
     QUrl preloadComponentPath() const;
-    void preloadCreated(QQmlApplicationEngine *engine);
 };
 
 #endif // TOKLIVEPRELOAD_H

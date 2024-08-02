@@ -1,7 +1,7 @@
 TEMPLATE = lib
 TARGET = TokLivePlugin
 QT += qml quick
-CONFIG += plugin c++11
+CONFIG += plugin c++11 qtquickcompiler
 
 uri = org.orange.toklive
 

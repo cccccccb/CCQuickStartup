@@ -18,6 +18,7 @@ TokLivePreload::~TokLivePreload()
 
 void TokLivePreload::aboutToPreload(QQmlApplicationEngine *engine)
 {
+    qGuiApp->setApplicationName("TokLive");
     QSurfaceFormat format = QSurfaceFormat::defaultFormat();
     if (!format.hasAlpha() || format.alphaBufferSize() != 8) {
         format.setAlphaBufferSize(8);
@@ -34,9 +35,4 @@ void TokLivePreload::aboutToPreload(QQmlApplicationEngine *engine)
 QUrl TokLivePreload::preloadComponentPath() const
 {
     return QUrl("qrc:///PreloadWindow.qml");
-}
-
-void TokLivePreload::preloadCreated(QQmlApplicationEngine *)
-{
-    qGuiApp->setApplicationName("Tok Live");
 }

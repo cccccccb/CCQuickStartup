@@ -48,6 +48,15 @@ QObject *TokLivePlugin::toklive_singleton_type_provider(QQmlEngine *engine, QJSE
 
 void TokLivePlugin::registerTypes(const char *uri)
 {
+    QByteArray implUri = QByteArray(uri).append(".impl");
+    qmlRegisterModule(implUri.constData(), 1, 0);
+
+    // @uri org.orange.toklive.impl
+    qmlRegisterSingletonType<EdgeToEdgeModeHelper *>(implUri, 1, 0, "EdgeToEdge", std::bind(&TokLivePlugin::edge_to_edge_singleton_type_provider, this,
+                                                                                        std::placeholders::_1, std::placeholders::_2));
+    qmlRegisterSingletonType<TokLiveQmlInstance *>(implUri, 1, 0, "TokLive", std::bind(&TokLivePlugin::toklive_singleton_type_provider, this,
+                                                                                   std::placeholders::_1, std::placeholders::_2));
+
     // @uri org.orange.toklive
     qmlRegisterSingletonType<EdgeToEdgeModeHelper *>(uri, 1, 0, "EdgeToEdge", std::bind(&TokLivePlugin::edge_to_edge_singleton_type_provider, this,
                                                                                         std::placeholders::_1, std::placeholders::_2));
