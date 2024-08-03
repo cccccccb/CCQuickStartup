@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QCoreApplication>
 #include <QFutureWatcher>
+#include <QtQml>
 
 class EdgeToEdgeModeHelper : public QObject
 {
@@ -11,6 +12,9 @@ class EdgeToEdgeModeHelper : public QObject
     Q_PROPERTY(int statusBarHeight READ statusBarHeight NOTIFY statusBarHeightChanged FINAL)
     Q_PROPERTY(int navigationBarHeight READ navigationBarHeight NOTIFY navigationBarHeightChanged FINAL)
     Q_PROPERTY(qreal deviceDensity READ deviceDensity NOTIFY deviceDensityChanged FINAL)
+
+    QML_SINGLETON
+    QML_NAMED_ELEMENT(EdgeToEdge)
 
 public:
     Q_INVOKABLE void enable();

@@ -16,8 +16,6 @@ class FramelessAttached : public QObject
     Q_PROPERTY(int frameBorder READ frameBorder WRITE setFrameBorder NOTIFY frameBorderChanged FINAL)
     Q_PROPERTY(bool canWindowResize READ canWindowResize WRITE setCanWindowResize NOTIFY canWindowResizeChanged FINAL)
     Q_PROPERTY(qreal contentMargins READ contentMargins WRITE setContentMargins NOTIFY contentMarginsChanged FINAL)
-    QML_ANONYMOUS
-
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     QML_UNCREATABLE("FramelessAttached Attached.")

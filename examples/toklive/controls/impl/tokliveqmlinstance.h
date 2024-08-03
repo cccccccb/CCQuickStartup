@@ -11,6 +11,9 @@ class TokLiveQmlInstance : public QObject
     Q_OBJECT
     Q_PROPERTY(bool isAndroid READ isAndroid CONSTANT FINAL)
 
+    QML_SINGLETON
+    QML_NAMED_ELEMENT(TokLive)
+
 public:
     explicit TokLiveQmlInstance(QObject *parent = nullptr);
 

@@ -21,7 +21,6 @@ class CC_QUICKSTARTUP_EXPORT AppStartupTransitionGroup : public QObject
     Q_PROPERTY(AppStartupInitialProperties *leaveInitialProperties READ leaveInitialProperties WRITE setLeaveInitialProperties NOTIFY leaveInitialPropertiesChanged FINAL)
     Q_PROPERTY(AppStartupInitialProperties *enterInitialProperties READ enterInitialProperties WRITE setEnterInitialProperties NOTIFY enterInitialPropertiesChanged FINAL)
     QML_NAMED_ELEMENT(TransitionGroup)
-    QML_ANONYMOUS
 
 public:
     explicit AppStartupTransitionGroup(QObject *parent = nullptr);

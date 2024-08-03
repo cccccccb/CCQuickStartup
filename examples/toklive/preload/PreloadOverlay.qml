@@ -5,7 +5,6 @@ import QtQuick.Controls.Material
 import org.orange.toklive
 
 Rectangle {
-    id: root
     color: "white"
     border.color: "gray"
     border.width: 1

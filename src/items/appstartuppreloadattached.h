@@ -23,7 +23,6 @@ class CC_QUICKSTARTUP_EXPORT AppStartupPreloadAttached : public QObject
     Q_PROPERTY(AppStartupItem *startupItem READ startupItem NOTIFY startupItemChanged FINAL)
     Q_PROPERTY(bool loaded READ loaded NOTIFY loadedChanged FINAL)
 
-    QML_ANONYMOUS
     QML_UNCREATABLE("AppStartupPreloadAttached Attached.")
     QML_NAMED_ELEMENT(PreloadItem)
     QML_ATTACHED(AppStartupPreloadAttached)

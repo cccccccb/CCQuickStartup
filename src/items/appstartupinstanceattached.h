@@ -14,7 +14,6 @@ class CC_QUICKSTARTUP_EXPORT AppStartupInstanceAttached : public QObject
     Q_OBJECT
     Q_PROPERTY(bool loaded READ loaded NOTIFY loadedChanged FINAL)
 
-    QML_ANONYMOUS
     QML_UNCREATABLE("AppStartupInstanceAttached Attached.")
     QML_NAMED_ELEMENT(StartupItem)
     QML_ATTACHED(AppStartupInstanceAttached)

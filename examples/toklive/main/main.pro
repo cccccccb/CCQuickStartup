@@ -1,7 +1,7 @@
 QT += core gui quick
 TARGET = TokLive
 
-CONFIG += c++17
+CONFIG += c++17 qtquickcompiler
 DEFINES += QT_DEPRECATED_WARNINGS
 
 DEFINES += CC_STARTUP_PLUGIN_PATH=\\\"$$CC_TOP_SHADOWED_DIR/bin\\\"

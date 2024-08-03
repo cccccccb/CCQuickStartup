@@ -245,9 +245,8 @@ bool AppStartupMainWindowComponent::createObjects(const char *propertyName)
     if (dd->defaultComponentGroup.main() == this->information)
         dd->defaultAppStartItem = appRootItem;
 
-    AppStartupPreloadAttached *preloadAttached = nullptr;
-    if (dd->defaultComponentGroup.main() == this->information) {
-        preloadAttached = qobject_cast<AppStartupPreloadAttached*>(qmlAttachedPropertiesObject<AppStartupPreloadAttached>(dd->appWindow, false));
+    AppStartupPreloadAttached *preloadAttached = qobject_cast<AppStartupPreloadAttached*>(qmlAttachedPropertiesObject<AppStartupPreloadAttached>(dd->appWindow, false));
+    if (dd->defaultComponentGroup.main() == this->information && preloadAttached) {
         preloadAttached->setStartupItem(appRootItem);
     }
 

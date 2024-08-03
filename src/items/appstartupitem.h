@@ -19,7 +19,6 @@ class CC_QUICKSTARTUP_EXPORT AppStartupItem : public QQuickItem
     Q_PROPERTY(qreal progress READ progress NOTIFY progressChanged)
     Q_PROPERTY(bool asynchronous READ asynchronous WRITE setAsynchronous NOTIFY asynchronousChanged)
 
-    QML_ANONYMOUS
     QML_NAMED_ELEMENT(AppStartupItem)
 
 public:

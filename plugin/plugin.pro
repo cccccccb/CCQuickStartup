@@ -1,7 +1,7 @@
 TEMPLATE = lib
 TARGET = CCQuickStartupExtension
 QT += qml quick
-CONFIG += plugin c++11
+CONFIG += plugin c++11 qtquickcompiler
 
 TARGET = $$qtLibraryTarget($$TARGET)
 
