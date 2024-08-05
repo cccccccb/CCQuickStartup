@@ -2,7 +2,7 @@ TEMPLATE = lib
 TARGET = CCQuickStartup
 
 QT += quick quick-private
-CONFIG += c++17 qtquickcompiler
+CONFIG += c++17
 
 DEFINES += CC_QUICKSTARTUP_LIBRARY
 DESTDIR = $$CC_TOP_SHADOWED_DIR/bin

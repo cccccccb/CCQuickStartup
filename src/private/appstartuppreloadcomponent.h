@@ -43,6 +43,7 @@ private:
     QMetaObject::Connection visibleConnection;
     QMetaObject::Connection autoExitConnection;
     bool overlayUsingParentSize = false;
+    QVariantHash initialPropertiesHash;
 };
 
 #endif // APPSTARTUPPRELOADCOMPONENT_H

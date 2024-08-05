@@ -90,6 +90,11 @@ AppStartupComponent *AppStartupPreloadComponent::transitionLinkNext()
 
 void AppStartupPreloadComponent::transitionFinish()
 {
+    if (transitionGroup && !initialPropertiesHash.isEmpty()) {
+        initialItemProperties(loadingOverlay, initialPropertiesHash);
+        initialPropertiesHash.clear();
+    }
+
     clearOverlay();
 
     if (dd->defaultAppStartItem) {
@@ -101,7 +106,7 @@ void AppStartupPreloadComponent::transitionFinish()
 void AppStartupPreloadComponent::beforeTransition()
 {
     if (transitionGroup)
-        initialItemProperties(loadingOverlay, transitionGroup->leaveInitialProperties());
+        initialPropertiesHash = initialItemProperties(loadingOverlay, transitionGroup->leaveInitialProperties());
 }
 
 void AppStartupPreloadComponent::load()

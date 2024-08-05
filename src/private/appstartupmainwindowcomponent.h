@@ -45,6 +45,7 @@ private:
     QQmlComponent *mainComponent = nullptr;
     AppStartupItem *appRootItem = nullptr;
     QList<QQmlIncubator *> incubators;
+    QVariantHash initialPropertiesHash;
 
     int childrenCount = 0;
 };

@@ -104,12 +104,16 @@ AppStartupComponent *AppStartupMainWindowComponent::transitionLinkPrev()
 void AppStartupMainWindowComponent::transitionFinish()
 {
     endOfTransition();
+    if (transitionGroup && !initialPropertiesHash.isEmpty()) {
+        initialItemProperties(appRootItem, initialPropertiesHash);
+        initialPropertiesHash.clear();
+    }
 }
 
 void AppStartupMainWindowComponent::beforeTransition()
 {
     if (transitionGroup)
-        initialItemProperties(appRootItem, transitionGroup->enterInitialProperties());
+        initialPropertiesHash = initialItemProperties(appRootItem, transitionGroup->enterInitialProperties());
 }
 
 void AppStartupMainWindowComponent::load()

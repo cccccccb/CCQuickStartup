@@ -1,5 +1,5 @@
 <RCC>
-    <qresource prefix="/appstartup/transition">
+    <qresource prefix="/appstartup">
         <file>qml/tansition/FlickTransition.qml</file>
     </qresource>
 </RCC>

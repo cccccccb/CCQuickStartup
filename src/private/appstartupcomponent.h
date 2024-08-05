@@ -42,7 +42,8 @@ protected:
 
     void copyTransitionGroupFromBinder();
     QQmlContext *transitionGroupContextFromBinder();
-    void initialItemProperties(QQuickItem *item, AppStartupInitialProperties *initialProperties);
+    QVariantHash initialItemProperties(QQuickItem *target, AppStartupInitialProperties *initialProperties);
+    QVariantHash initialItemProperties(QQuickItem *item, const QVariantHash &properties);
 
     AppStartupInstance *qq = nullptr;
     AppStartupInstancePrivate *dd = nullptr;

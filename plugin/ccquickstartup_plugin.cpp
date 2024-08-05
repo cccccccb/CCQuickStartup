@@ -15,5 +15,5 @@ void CCQuickStartupExtension::registerTypes(const char *uri)
     qmlRegisterType<AppStartupItem>(uri, 1, 0, "AppStartupItem");
     qmlRegisterType<AppStartupTransitionGroup>(uri, 1, 0, "TransitionGroup");
     qmlRegisterType<AppStartupInitialProperties>(uri, 1, 0, "InitialProperties");
-    qmlRegisterType(QUrl("qrc:/appstartup/transition/qml/tansition/FlickTransition.qml"), uri, 1, 0, "FlickTransition");
+    qmlRegisterType(QUrl("qrc:/appstartup/qml/tansition/FlickTransition.qml"), uri, 1, 0, "FlickTransition");
 }

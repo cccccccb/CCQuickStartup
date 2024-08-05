@@ -93,42 +93,63 @@ QQmlContext *AppStartupComponent::transitionGroupContextFromBinder()
     }
 }
 
-void AppStartupComponent::initialItemProperties(QQuickItem *item, AppStartupInitialProperties *initialProperties)
+QVariantHash AppStartupComponent::initialItemProperties(QQuickItem *target, AppStartupInitialProperties *initialProperties)
 {
     if (!transitionGroup || !initialProperties)
-        return;
+        return {};
 
-    QHash<QString, int> rootPropertyHash;
-    const QMetaObject *itemMetaObject = item->metaObject();
-    for (int index = 0; index < itemMetaObject->propertyCount(); ++index) {
-        const QMetaProperty &mtProp = itemMetaObject->property(index);
-        rootPropertyHash.insert(QString::fromLatin1(mtProp.name()), index);
-    }
-
+    QVariantHash rootPropertyHash;
     const QMetaObject *initMetaObject = initialProperties->metaObject();
     for (int index = initMetaObject->propertyOffset(); index < initMetaObject->propertyCount(); ++index) {
         const QMetaProperty &mtProp = initMetaObject->property(index);
         const QString &dynamicProperty = QString::fromLatin1(mtProp.name());
-        if (rootPropertyHash.contains(dynamicProperty)) {
-            if (mtProp.isBindable() && mtProp.bindable(item).hasBinding()) {
-                auto binding = mtProp.bindable(item).takeBinding();
-                qWarning() << "The item [" << item << "] has bind the property ["
-                           << dynamicProperty << "], but initial propeties needed it, removed!";
-            }
+        if (!dynamicProperty.startsWith(QLatin1String("_private"))
+            && !dynamicProperty.startsWith(QLatin1String("target"))) {
+            const QMetaProperty &mtProp = initMetaObject->property(index);
+            rootPropertyHash.insert(QString::fromLatin1(mtProp.name()), mtProp.read(initialProperties));
+        }
+    }
+
+    QVariantHash prevPropertiesHash = initialItemProperties(target, rootPropertyHash);
+    return prevPropertiesHash;
+}
+
+QVariantHash AppStartupComponent::initialItemProperties(QQuickItem *item, const QVariantHash &properties)
+{
+    QVariantHash prevPropertiesHash;
+    QVariantHash applyPropertiesHash = properties;
+
+    const QMetaObject *itemMetaObject = item->metaObject();
+    for (int index = 0; index < itemMetaObject->propertyCount(); ++index) {
+        const QMetaProperty &mtProp = itemMetaObject->property(index);
+        const QString &dynamicProperty = QString::fromLatin1(mtProp.name());
+
+        auto it = applyPropertiesHash.find(dynamicProperty);
+        if (it != applyPropertiesHash.end()) {
+            // if (mtProp.isBindable() && mtProp.bindable(item).hasBinding()) {
+            //     auto binding = mtProp.bindable(item).takeBinding();
+            //     qWarning() << "The item [" << item << "] has bind the property ["
+            //                << dynamicProperty << "], but initial propeties needed it, removed!";
+            // }
 
             QQmlProperty prop(item, dynamicProperty, qmlEngine(item));
             QQmlPropertyPrivate *privProp = QQmlPropertyPrivate::get(prop);
             const bool isValid = prop.isValid();
             if (isValid) {
-                privProp->writeValueProperty(mtProp.read(initialProperties), {});
+                prevPropertiesHash.insert(dynamicProperty, privProp->readValueProperty());
+                privProp->writeValueProperty(applyPropertiesHash.value(dynamicProperty), {});
             }
-        } else if (!dynamicProperty.startsWith(QLatin1String("_private"))
-                   && !dynamicProperty.startsWith(QLatin1String("target"))) {
-            qWarning() << "Dont find the propert: [" << dynamicProperty << "], from the target: " << item;
+
+            applyPropertiesHash.erase(it);
         }
     }
 
+    for (auto noExistProp : applyPropertiesHash.keys())
+        qWarning() << "Dont find the propert: [" << noExistProp << "], from the target: " << item;
+
     //! ##TODO: support the vme meta properties.
+
+    return prevPropertiesHash;
 }
 
 void AppStartupComponent::transitionFinishedImpl()
