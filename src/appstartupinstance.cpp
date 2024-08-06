@@ -87,6 +87,8 @@ int AppStartupInstance::exec(int &argc, char **argv)
     if (!dd->app)
         dd->app.reset(new QGuiApplication(argc, argv));
 
-    dd->reloadPlugins();
+    if (!dd->reloadPlugins())
+        return -1;
+
     return dd->app->exec();
 }

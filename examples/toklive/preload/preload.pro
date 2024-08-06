@@ -15,10 +15,10 @@ INCLUDEPATH += \
 LIBS += -L$$CC_TOP_SHADOWED_DIR/bin -lCCQuickStartup
 
 HEADERS += \
-    toklivepreload.h
+    toklive_preload.h
 
 SOURCES += \
-    toklivepreload.cpp
+    toklive_preload.cpp
 
 RESOURCES += \
     $$PWD/qml.qrc   \

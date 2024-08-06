@@ -1,5 +1,5 @@
 TEMPLATE = lib
-TARGET = TokLive-DesktopMainWindow
+TARGET = TokLive-DesktopEntity
 
 QT += quick
 
@@ -16,10 +16,10 @@ INCLUDEPATH += \
     $$PWD/../../controls/impl
 
 HEADERS += \
-    toklivemainwindow.h
+    toklive_entity.h
 
 SOURCES += \
-    toklivemainwindow.cpp
+    toklive_entity.cpp
 
 RESOURCES += \
     $$PWD/qml/qml.qrc       \

@@ -23,7 +23,7 @@ public:
     AppStartupComponent *binder() const;
 
     virtual AppStartupComponentInformation::StartComponent componentType() = 0;
-    virtual void load() {}
+    virtual bool load() { return false; }
 
     virtual QQuickItem *transitionItem() { return nullptr; }
     virtual QQuickTransition *transition() { return nullptr; }

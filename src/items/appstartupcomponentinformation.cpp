@@ -257,12 +257,12 @@ void AppStartupComponentGroup::setPreload(const AppStartupComponentInformation &
     m_group.first = preload;
 }
 
-AppStartupComponentInformation AppStartupComponentGroup::main() const
+AppStartupComponentInformation AppStartupComponentGroup::entity() const
 {
     return m_group.second;
 }
 
-void AppStartupComponentGroup::setMain(const AppStartupComponentInformation &main)
+void AppStartupComponentGroup::setEntity(const AppStartupComponentInformation &entity)
 {
-    m_group.second = main;
+    m_group.second = entity;
 }

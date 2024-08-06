@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
+import QtQuick.Effects
 
 import org.orange.quickstartup
 import org.orange.toklive
@@ -11,10 +12,9 @@ Window {
     width: 800
     height: 600
     title: "TokLive"
+    color: "transparent"
 
-    color: root.visibility === Window.Windowed ? "transparent" : "white"
-
-    PreloadItem.loadingOverlay: PreloadOverlay {
+    AppPreloadItem.loadingOverlay: PreloadOverlay {
         id: overlay
 
         Button {
@@ -54,16 +54,16 @@ Window {
         }
     }
 
-    PreloadItem.autoExitOverlay: false
-    PreloadItem.overlayExitWhen: !preloadCountdown.running
-    PreloadItem.transitionGroup:  FlickTransition {}
+    AppPreloadItem.autoExitOverlay: false
+    AppPreloadItem.overlayExitWhen: !preloadCountdown.running
+    AppPreloadItem.transitionGroup:  FlickTransition {}
 
     Countdown {
         id: preloadCountdown
-        interval: 10
+        interval: 1
         running: root.visible
     }
 
     Frameless.enabled: true
-    Frameless.canWindowResize: false;
+    Frameless.canWindowResize: false
 }

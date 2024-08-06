@@ -1,4 +1,4 @@
-#include "toklivepreload.h"
+#include "toklive_preload.h"
 
 #include <QIcon>
 #include <QGuiApplication>
@@ -34,5 +34,5 @@ void TokLivePreload::aboutToPreload(QQmlApplicationEngine *engine)
 
 QUrl TokLivePreload::preloadComponentPath() const
 {
-    return QUrl("qrc:///PreloadWindow.qml");
+    return QUrl("qrc:///qml/PreloadWindow.qml");
 }

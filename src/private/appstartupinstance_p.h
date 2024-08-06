@@ -23,12 +23,12 @@ public:
     QList<AppStartupComponentInformation> scanStaticPlugins();
     void detachAvailablePluginsChange(const QList<AppStartupComponentInformation> &plugins);
 
-    void reloadPlugins();
+    bool reloadPlugins();
     void unloadPlugins();
 
     void findDefaultComponentGroup();
-    void loadPreloadPlugins();
-    void loadMainWindowPlugins();
+    bool loadPreloadPlugins();
+    void loadEntityPlugins();
     bool resolveMetaInfoFromObject(const QJsonObject &obj, AppStartupComponentInformation *info);
 
     static QStringList buildinPluginPaths();

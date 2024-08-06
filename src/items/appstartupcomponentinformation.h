@@ -31,7 +31,7 @@ public:
     enum StartComponent {
         UnknowComponent = -1,
         Preload,
-        MainWindow
+        Entity
     };
     Q_ENUM(StartComponent)
 
@@ -87,7 +87,7 @@ class CC_QUICKSTARTUP_EXPORT AppStartupComponentGroup
 {
     Q_GADGET
     Q_PROPERTY(AppStartupComponentInformation preload READ preload CONSTANT FINAL)
-    Q_PROPERTY(AppStartupComponentInformation main READ main CONSTANT FINAL)
+    Q_PROPERTY(AppStartupComponentInformation entity READ entity CONSTANT FINAL)
     QML_ANONYMOUS
 
 public:
@@ -105,8 +105,8 @@ public:
     AppStartupComponentInformation preload() const;
     void setPreload(const AppStartupComponentInformation &preload);
 
-    AppStartupComponentInformation main() const;
-    void setMain(const AppStartupComponentInformation &main);
+    AppStartupComponentInformation entity() const;
+    void setEntity(const AppStartupComponentInformation &entity);
 
 private:
     typedef std::pair<AppStartupComponentInformation, AppStartupComponentInformation> Group;
@@ -115,7 +115,7 @@ private:
 
 inline uint qHash(const AppStartupComponentGroup &key, uint seed = 0) {
     return qHash(key.preload(), seed)
-           ^ qHash(key.main(), seed);
+           ^ qHash(key.entity(), seed);
 }
 
 #endif // APPSTARTUPCOMPONENTINFORMATION_H

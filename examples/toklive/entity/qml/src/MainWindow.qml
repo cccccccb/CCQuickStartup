@@ -30,10 +30,10 @@ AppStartupItem {
         }
     }
 
-    onEnabledChanged: {
-        if (enabled) {
+    onPopulateChanged: {
+        if (populate) {
             Window.window.Frameless.canWindowResize = true
-            Window.window.Frameless.contentMargins = Style.item.marginLevel1
+            Window.window.Frameless.contentMargins = root.AppStartupItem.mainPane.anchors.margins
         }
     }
 }

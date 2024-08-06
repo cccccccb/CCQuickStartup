@@ -9,17 +9,14 @@ DESTDIR = $$CC_TOP_SHADOWED_DIR/bin
 
 include(items/items.pri)
 include(private/private.pri)
+include(interface/interface.pri)
 
 SOURCES += \
     appstartupinstance.cpp \
-    ccstartupmainwindowinterface.cpp \
-    ccstartuppreloadinterface.cpp
 
 HEADERS += \
     appstartupinstance.h \
     ccquickstartup_global.h \
-    ccstartupmainwindowinterface.h \
-    ccstartuppreloadinterface.h
 
 RESOURCES += \
     qml.qrc

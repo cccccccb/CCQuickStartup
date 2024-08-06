@@ -1,8 +1,8 @@
 #include "appstartuppreloadcomponent.h"
 #include "appstartupinstance_p.h"
-#include "ccstartuppreloadinterface.h"
 #include "defines_p.h"
 
+#include "interface/appstartuppreloadinterface.h"
 #include "items/appstartuppreloadattached.h"
 #include "items/appstartupitem.h"
 #include "items/appstartuptransitiongroup.h"
@@ -109,15 +109,15 @@ void AppStartupPreloadComponent::beforeTransition()
         initialPropertiesHash = initialItemProperties(loadingOverlay, transitionGroup->leaveInitialProperties());
 }
 
-void AppStartupPreloadComponent::load()
+bool AppStartupPreloadComponent::load()
 {
     const AppStartupComponentInformation &pluginInfo = this->information;
     QPluginLoader loader(pluginInfo.path());
-    preloadInstance = qobject_cast<CCStartupPreloadInterface *>(loader.instance());
+    preloadInstance = qobject_cast<AppStartupPreloadInterface *>(loader.instance());
     if (!preloadInstance) {
         //! @todo add error
         qFatal("load preload plugin failed!");
-        return;
+        return true;
     }
 
     preloadInstance->aboutToPreload(dd->engine.get());
@@ -126,9 +126,10 @@ void AppStartupPreloadComponent::load()
     dd->engine->load(preloadInstance->preloadComponentPath());
     if (dd->engine->rootObjects().isEmpty()) {
         qWarning() << "No root object created!";
-        qGuiApp->exit(-1);
-        return;
+        return false;
     }
+
+    return true;
 }
 
 void AppStartupPreloadComponent::_q_onPreloadCreated(QObject *obj, const QUrl &objUrl)
@@ -159,7 +160,7 @@ void AppStartupPreloadComponent::_q_onPreloadCreated(QObject *obj, const QUrl &o
     initRootItem(dd->windowContentItem);
     createOverlay();
 
-    dd->loadMainWindowPlugins();
+    dd->loadEntityPlugins();
 }
 
 void AppStartupPreloadComponent::findWindowContentItem()
@@ -211,7 +212,7 @@ void AppStartupPreloadComponent::createOverlay()
         tgContext->setContextProperty("enterTarget", attached->startupItem());
         tgContext->setContextProperty("leaveTarget", nullptr);
     } else {
-        qWarning() << "[transitionGroup] only use AppStartupTransitionGroup type!";
+        qWarning() << "No transition group or type is not the AppStartupTransitionGroup!";
     }
 
     if (tgComponent)

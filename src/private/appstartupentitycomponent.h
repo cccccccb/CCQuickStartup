@@ -1,20 +1,20 @@
-#ifndef APPSTARTUPMAINWINDOWCOMPONENT_H
-#define APPSTARTUPMAINWINDOWCOMPONENT_H
+#ifndef APPSTARTUPENTITYCOMPONENT_H
+#define APPSTARTUPENTITYCOMPONENT_H
 
 #include "appstartupcomponent.h"
 
-class CCStartupMainWindowInterface;
+class AppStartupEntityInterface;
 class AppStartupItem;
 
-class AppStartupMainWindowComponent : public AppStartupComponent
+class AppStartupEntityComponent : public AppStartupComponent
 {
     Q_OBJECT
     friend class AppQmlComponentIncubator;
 public:
     using AppStartupComponent::AppStartupComponent;
-    ~AppStartupMainWindowComponent();
+    ~AppStartupEntityComponent();
 
-    inline AppStartupComponentInformation::StartComponent componentType() override { return AppStartupComponentInformation::MainWindow; }
+    inline AppStartupComponentInformation::StartComponent componentType() override { return AppStartupComponentInformation::Entity; }
 
     QQuickItem *transitionItem() override;
     QQuickTransition *transition() override;
@@ -23,13 +23,13 @@ public:
     void transitionFinish() override;
     void beforeTransition() override;
 
-    void load() override;
+    bool load() override;
 
 protected:
     void itemGeometryChanged(QQuickItem *item, QQuickGeometryChange change, const QRectF &oldGeometry) override;
 
 private Q_SLOTS:
-    void _q_onMainComponentStatusChanged(QQmlComponent::Status status);
+    void _q_onEntityComponentStatusChanged(QQmlComponent::Status status);
     void _q_onComponentProgressChanged();
 
 private:
@@ -41,8 +41,8 @@ private:
     void endOfTransition();
 
 private:
-    QScopedPointer<CCStartupMainWindowInterface> mainInstance;
-    QQmlComponent *mainComponent = nullptr;
+    QScopedPointer<AppStartupEntityInterface> entityInstance;
+    QQmlComponent *entityComponent = nullptr;
     AppStartupItem *appRootItem = nullptr;
     QList<QQmlIncubator *> incubators;
     QVariantHash initialPropertiesHash;
@@ -50,4 +50,4 @@ private:
     int childrenCount = 0;
 };
 
-#endif // APPSTARTUPMAINWINDOWCOMPONENT_H
+#endif // APPSTARTUPENTITYCOMPONENT_H

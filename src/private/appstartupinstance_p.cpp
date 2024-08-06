@@ -1,9 +1,10 @@
 #include "appstartupinstance_p.h"
 
-#include "appstartupmainwindowcomponent.h"
+#include "appstartupentitycomponent.h"
 #include "appstartuppreloadcomponent.h"
-#include "ccstartuppreloadinterface.h"
-#include "ccstartupmainwindowinterface.h"
+
+#include "interface/appstartuppreloadinterface.h"
+#include "interface/appstartupentityinterface.h"
 
 #include <QDir>
 #include <QLibrary>
@@ -25,8 +26,8 @@ public:
     {
         if (plugin.startComponent() == AppStartupComponentInformation::Preload) {
             return new AppStartupPreloadComponent(plugin, dd);
-        } else if (plugin.startComponent() == AppStartupComponentInformation::MainWindow) {
-            return new AppStartupMainWindowComponent(plugin, dd);
+        } else if (plugin.startComponent() == AppStartupComponentInformation::Entity) {
+            return new AppStartupEntityComponent(plugin, dd);
         }
 
         return nullptr;
@@ -166,14 +167,14 @@ void AppStartupInstancePrivate::detachAvailablePluginsChange(const QList<AppStar
     }
 }
 
-void AppStartupInstancePrivate::reloadPlugins()
+bool AppStartupInstancePrivate::reloadPlugins()
 {
     if (reloadPluginsList.isEmpty())
-        return;
+        return false;
 
     unloadPlugins();
     findDefaultComponentGroup();
-    loadPreloadPlugins();
+    return loadPreloadPlugins();
 }
 
 void AppStartupInstancePrivate::unloadPlugins()
@@ -218,7 +219,7 @@ void AppStartupInstancePrivate::unloadPlugins()
 void AppStartupInstancePrivate::findDefaultComponentGroup()
 {
     for (const auto &group : reloadPluginsList) {
-        if (!group.isValid() || !group.preload().isDefault() || !group.main().isDefault())
+        if (!group.isValid() || !group.preload().isDefault() || !group.entity().isDefault())
             continue;
 
         this->defaultComponentGroup = group;
@@ -226,11 +227,11 @@ void AppStartupInstancePrivate::findDefaultComponentGroup()
     }
 }
 
-void AppStartupInstancePrivate::loadMainWindowPlugins()
+void AppStartupInstancePrivate::loadEntityPlugins()
 {
     while (!reloadPluginsList.isEmpty()) {
         const auto &group = reloadPluginsList.takeFirst();
-        AppStartupComponent *component = componentFactory->create(group.main());
+        AppStartupComponent *component = componentFactory->create(group.entity());
         if (!component)
             continue;
 
@@ -240,28 +241,28 @@ void AppStartupInstancePrivate::loadMainWindowPlugins()
             preloadComponent->setBinder(component);
         }
 
-        this->componentPluginHash.insert(group.main(), QSharedPointer<AppStartupComponent>(component));
+        this->componentPluginHash.insert(group.entity(), QSharedPointer<AppStartupComponent>(component));
         component->load();
     }
 }
 
-void AppStartupInstancePrivate::loadPreloadPlugins()
+bool AppStartupInstancePrivate::loadPreloadPlugins()
 {
     if (!defaultComponentGroup.isValid()) {
         //! @todo add error
         qFatal("No preload plugin found when load the exist plugins!");
-        return;
+        return false;
     }
 
     AppStartupComponent *component = componentFactory->create(defaultComponentGroup.preload());
     if (!component) {
         //! @todo add error
         qFatal("Create preload component failed!");
-        return;
+        return false;
     }
 
     this->componentPluginHash.insert(defaultComponentGroup.preload(), QSharedPointer<AppStartupComponent>(component));
-    component->load();
+    return component->load();
 }
 
 bool AppStartupInstancePrivate::resolveMetaInfoFromObject(const QJsonObject &obj, AppStartupComponentInformation *info)
@@ -274,8 +275,8 @@ bool AppStartupInstancePrivate::resolveMetaInfoFromObject(const QJsonObject &obj
         return false;
 
     const QString iid = obj["IID"].toString();
-    if (iid != qobject_interface_iid<CCStartupPreloadInterface *>()
-        && iid != qobject_interface_iid<CCStartupMainWindowInterface *>())
+    if (iid != qobject_interface_iid<AppStartupPreloadInterface *>()
+        && iid != qobject_interface_iid<AppStartupEntityInterface *>())
         return false;
 
     auto metaDataObject = metaDataValue.toObject();
@@ -283,9 +284,9 @@ bool AppStartupInstancePrivate::resolveMetaInfoFromObject(const QJsonObject &obj
     if (pluginAppId != this->appId)
         return false;
 
-    info->setStartComponent(iid == qobject_interface_iid<CCStartupPreloadInterface *>()
+    info->setStartComponent(iid == qobject_interface_iid<AppStartupPreloadInterface *>()
                                 ? AppStartupComponentInformation::Preload
-                                : AppStartupComponentInformation::MainWindow);
+                                : AppStartupComponentInformation::Entity);
     info->setAppId(pluginAppId);
     info->setDescriptor(metaDataObject.value("descriptor").toString());
     info->setVersion(metaDataObject.value("version").toString());

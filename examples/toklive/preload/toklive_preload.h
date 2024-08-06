@@ -3,13 +3,13 @@
 
 #include <QObject>
 
-#include "ccstartuppreloadinterface.h"
+#include "interface/appstartuppreloadinterface.h"
 
-class TokLivePreload : public QObject, public CCStartupPreloadInterface
+class TokLivePreload : public QObject, public AppStartupPreloadInterface
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID CCStartupPreloadInterface_iid FILE "plugin.json")
-    Q_INTERFACES(CCStartupPreloadInterface)
+    Q_PLUGIN_METADATA(IID AppStartupPreloadInterface_iid FILE "plugin.json")
+    Q_INTERFACES(AppStartupPreloadInterface)
 
 public:
     explicit TokLivePreload(QObject *parent = nullptr);

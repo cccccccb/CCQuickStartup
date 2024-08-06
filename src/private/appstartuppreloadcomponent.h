@@ -3,7 +3,7 @@
 
 #include "appstartupcomponent.h"
 
-class CCStartupPreloadInterface;
+class AppStartupPreloadInterface;
 class AppStartupPreloadAttached;
 
 class AppStartupPreloadComponent : public AppStartupComponent
@@ -22,7 +22,7 @@ public:
     void transitionFinish() override;
     void beforeTransition() override;
 
-    virtual void load() override;
+    virtual bool load() override;
 
 protected:
     void itemGeometryChanged(QQuickItem *item, QQuickGeometryChange change, const QRectF &oldGeometry) override;
@@ -38,7 +38,7 @@ private Q_SLOTS:
     void doOverlayAutoExitChanged(AppStartupPreloadAttached *attached);
 
 private:
-    CCStartupPreloadInterface *preloadInstance = nullptr;
+    AppStartupPreloadInterface *preloadInstance = nullptr;
     QQuickItem *loadingOverlay = nullptr;
     QMetaObject::Connection visibleConnection;
     QMetaObject::Connection autoExitConnection;

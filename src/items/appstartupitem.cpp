@@ -1,4 +1,32 @@
 #include "appstartupitem.h"
+#include "appstartupitemattached.h"
+
+static AppStartupItem *findStartupRootItem(QObject *obj)
+{
+    do {
+        AppStartupItem *item = qobject_cast<AppStartupItem *>(obj);
+        if (item)
+            return item;
+
+        obj = obj->parent();
+    } while (obj);
+
+    return nullptr;
+}
+
+static AppStartupItem *findStartupRootItem(QQmlContext *context)
+{
+    do {
+        AppStartupItem *item = qobject_cast<AppStartupItem *>(context->contextObject());
+        if (item)
+            return item;
+
+        context = context->parentContext();
+    } while (context);
+
+    return nullptr;
+}
+
 
 class AppStartupItemPrivate {
 public:
@@ -17,6 +45,8 @@ public:
     bool _loaded = false;
     bool _asynchronous = false;
     qreal _progress = 0.0;
+    bool _populate = false;
+    QPointer<AppStartupItemAttached> _attached;
 
     QStringList keys;
 };
@@ -105,6 +135,38 @@ void AppStartupItem::setAsynchronous(bool a)
         return;
     dd->_asynchronous = a;
     Q_EMIT asynchronousChanged();
+}
+
+bool AppStartupItem::populate() const
+{
+    return dd->_populate;
+}
+
+void AppStartupItem::setPopulate(bool populate)
+{
+    if (populate == dd->_populate)
+        return;
+    dd->_populate = populate;
+    Q_EMIT populateChanged();
+}
+
+AppStartupItemAttached *AppStartupItem::qmlAttachedProperties(QObject *object)
+{
+    AppStartupItemAttached *attached = nullptr;
+
+    AppStartupItem *appRootItem = findStartupRootItem(object);
+    if (!appRootItem)
+        appRootItem = findStartupRootItem(qmlContext(object));
+
+    if (appRootItem) {
+        attached = appRootItem->dd->_attached;
+
+        if (!attached) {
+            attached = new AppStartupItemAttached(appRootItem);
+            appRootItem->dd->_attached = attached;
+        }
+    }
+    return attached;
 }
 
 #include "moc_appstartupitem.cpp"
