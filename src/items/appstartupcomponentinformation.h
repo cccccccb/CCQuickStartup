@@ -76,7 +76,7 @@ private:
     QString m_path;
 };
 
-inline uint qHash(const AppStartupComponentInformation &key, uint seed = 0) {
+inline size_t qHash(const AppStartupComponentInformation &key, size_t seed = 0) {
     return qHash(key.appId(), seed)
            ^ qHash(key.descriptor(), seed)
            ^ qHash(key.version(), seed)
@@ -113,7 +113,7 @@ private:
     Group m_group;
 };
 
-inline uint qHash(const AppStartupComponentGroup &key, uint seed = 0) {
+inline size_t qHash(const AppStartupComponentGroup &key, size_t seed = 0) {
     return qHash(key.preload(), seed)
            ^ qHash(key.entity(), seed);
 }

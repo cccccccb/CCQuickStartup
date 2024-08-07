@@ -1,6 +1,6 @@
-#include "apppreloaditem.h"
-#include "appstartupitem.h"
+#include "appstartuppreloaditem.h"
 #include "appstartupinitialproperties.h"
+#include "appstartupitem.h"
 
 #include <QQmlComponent>
 #include <QQuickWindow>
@@ -13,8 +13,8 @@ public:
     {}
 
     AppPreloadItem *_qq;
-    AppPreloadItem::PreloadView _preloadView;
-    QQmlComponent *_customPreloadView = nullptr;
+    AppPreloadItem::PreloadSurface _preloadSurface = AppPreloadItem::WindowSurface;
+    QQmlComponent *_customPreloadSurface = nullptr;
     QQmlComponent *_transitionGroup = nullptr;
     QQmlComponent *_loadingOverlay = nullptr;
     AppStartupItem *_startupItem = nullptr;
@@ -37,32 +37,32 @@ AppPreloadItem::~AppPreloadItem()
 
 }
 
-AppPreloadItem::PreloadView AppPreloadItem::preloadView() const
+AppPreloadItem::PreloadSurface AppPreloadItem::preloadSurface() const
 {
-    return dd->_preloadView;
+    return dd->_preloadSurface;
 }
 
-void AppPreloadItem::setPreloadView(PreloadView preview)
+void AppPreloadItem::setPreloadSurface(PreloadSurface surface)
 {
-    if (dd->_preloadView == preview)
+    if (dd->_preloadSurface == surface)
         return;
 
-    dd->_preloadView = preview;
-    Q_EMIT preloadViewChanged();
+    dd->_preloadSurface = surface;
+    Q_EMIT preloadSurfaceChanged();
 }
 
-QQmlComponent *AppPreloadItem::customPreloadView() const
+QQmlComponent *AppPreloadItem::customPreloadSurface() const
 {
-    return dd->_customPreloadView;
+    return dd->_customPreloadSurface;
 }
 
-void AppPreloadItem::setCustomPreloadView(QQmlComponent *custom)
+void AppPreloadItem::setCustomPreloadSurface(QQmlComponent *custom)
 {
-    if (dd->_customPreloadView == custom)
+    if (dd->_customPreloadSurface == custom)
         return;
 
-    dd->_customPreloadView = custom;
-    Q_EMIT customPreloadViewChanged();
+    dd->_customPreloadSurface = custom;
+    Q_EMIT customPreloadSurfaceChanged();
 }
 
 QQmlComponent *AppPreloadItem::transitionGroup() const
@@ -180,4 +180,4 @@ QQuickWindow *AppPreloadItem::window() const
     return dd->_window;
 }
 
-#include "moc_apppreloaditem.cpp"
+#include "moc_appstartuppreloaditem.cpp"

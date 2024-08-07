@@ -9,7 +9,6 @@ import org.orange.toklive
 AppPreloadItem {
     id: root
 
-    preloadView: AppPreloadItem.ApplicationWindow
     loadingOverlay: PreloadOverlay {
         id: overlay
 
@@ -33,7 +32,7 @@ AppPreloadItem {
             }
 
             Component.onCompleted: {
-               root.window.Frameless.moveExclude.push(skipButton)
+                root.window.Frameless.moveExclude.push(skipButton)
             }
 
             Component.onDestruction: {

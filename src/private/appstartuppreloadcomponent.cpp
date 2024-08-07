@@ -62,14 +62,14 @@ void AppStartupPreloadComponent::createWindow()
     if (!item)
         return;
 
-    AppPreloadItem::PreloadView previewType = item->preloadView();
+    AppPreloadItem::PreloadSurface previewType = item->preloadSurface();
     QQmlComponent *windowComponent = nullptr;
-    if (previewType == AppPreloadItem::Window) {
+    if (previewType == AppPreloadItem::WindowSurface) {
         windowComponent = new QQmlComponent(dd->engine.get(), QUrl("qrc:/appstartup/qml/container/Window.qml"), QQmlComponent::PreferSynchronous);
-    } else if (previewType == AppPreloadItem::ApplicationWindow) {
+    } else if (previewType == AppPreloadItem::ApplicationWindowSurface) {
         windowComponent = new QQmlComponent(dd->engine.get(), QUrl("qrc:/appstartup/qml/container/ApplicationWindow.qml"), QQmlComponent::PreferSynchronous);
-    } else if (previewType == AppPreloadItem::Custom) {
-        windowComponent = item->customPreloadView();
+    } else if (previewType == AppPreloadItem::CustomSurface) {
+        windowComponent = item->customPreloadSurface();
     }
 
     Q_ASSERT_X(windowComponent, "AppPreloadItem", "Construct the window component failed!");
@@ -77,7 +77,7 @@ void AppStartupPreloadComponent::createWindow()
     Q_ASSERT_X(dd->appWindow, "AppPreloadItem", qPrintable("Create window failed, error string: " + windowComponent->errorString()));
     initialItemProperties(dd->appWindow, item->initialProperties());
     item->setWindow(dd->appWindow);
-    windowComponent->completeCreate();
+    windowComponent->completeCreate();    
 
     if (dd->appWindow->isVisible()) {
         _q_onWindowVisibleChanged(true);
@@ -175,6 +175,7 @@ void AppStartupPreloadComponent::_q_onPreloadCreated(QObject *obj, const QUrl &o
     findWindowContentItem();
     Q_ASSERT(dd->windowContentItem);
     initRootItem(dd->windowContentItem);
+    appPreloadItem()->setParentItem(dd->windowContentItem);
     createOverlay();
 
     dd->loadEntityPlugins();

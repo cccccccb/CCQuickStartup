@@ -1,7 +1,12 @@
-#ifndef APPPRELOADITEM_H
-#define APPPRELOADITEM_H
+#ifndef APPSTARTUPPRELOADITEM_H
+#define APPSTARTUPPRELOADITEM_H
 
 #include <QQuickItem>
+
+QT_BEGIN_NAMESPACE
+class QQmlComponent;
+class QQuickWindow;
+QT_END_NAMESPACE
 
 #include "ccquickstartup_global.h"
 
@@ -12,8 +17,8 @@ class AppStartupInitialProperties;
 class CC_QUICKSTARTUP_EXPORT AppPreloadItem : public QQuickItem
 {
     Q_OBJECT
-    Q_PROPERTY(PreloadView preloadView READ preloadView WRITE setPreloadView NOTIFY preloadViewChanged FINAL)
-    Q_PROPERTY(QQmlComponent *customPreloadView READ customPreloadView WRITE setCustomPreloadView NOTIFY customPreloadViewChanged FINAL)
+    Q_PROPERTY(PreloadSurface preloadSurface READ preloadSurface WRITE setPreloadSurface NOTIFY preloadSurfaceChanged FINAL)
+    Q_PROPERTY(QQmlComponent *customPreloadSurface READ customPreloadSurface WRITE setCustomPreloadSurface NOTIFY customPreloadSurfaceChanged FINAL)
     Q_PROPERTY(QQmlComponent *transitionGroup READ transitionGroup WRITE setTransitionGroup NOTIFY transitionGroupChanged FINAL)
     Q_PROPERTY(QQmlComponent *loadingOverlay READ loadingOverlay WRITE setLoadingOverlay NOTIFY loadingOverlayChanged FINAL)
     Q_PROPERTY(bool autoExitOverlay READ autoExitOverlay WRITE setAutoExitOverlay NOTIFY autoExitOverlayChanged FINAL)
@@ -28,19 +33,19 @@ public:
     explicit AppPreloadItem(QQuickItem *parentItem = nullptr);
     ~AppPreloadItem();
 
-    enum PreloadView {
-        Window,
-        ApplicationWindow,
-        Item,
-        Custom
+    enum PreloadSurface {
+        WindowSurface,
+        ApplicationWindowSurface,
+        ItemSurface,
+        CustomSurface
     };
-    Q_ENUM(PreloadView)
+    Q_ENUM(PreloadSurface)
 
-    PreloadView preloadView() const;
-    void setPreloadView(PreloadView preview);
+    PreloadSurface preloadSurface() const;
+    void setPreloadSurface(PreloadSurface surface);
 
-    QQmlComponent *customPreloadView() const;
-    void setCustomPreloadView(QQmlComponent *custom);
+    QQmlComponent *customPreloadSurface() const;
+    void setCustomPreloadSurface(QQmlComponent *custom);
 
     QQmlComponent *transitionGroup() const;
     void setTransitionGroup(QQmlComponent *transitionGroup);
@@ -67,8 +72,8 @@ public:
     QQuickWindow *window() const;
 
 Q_SIGNALS:
-    void preloadViewChanged();
-    void customPreloadViewChanged();
+    void preloadSurfaceChanged();
+    void customPreloadSurfaceChanged();
     void transitionGroupChanged();
     void loadingOverlayChanged();
     void autoExitOverlayChanged(bool changed);
@@ -82,4 +87,4 @@ private:
     QScopedPointer<AppPreloadItemPrivate> dd;
 };
 
-#endif // APPPRELOADITEM_H
+#endif // APPSTARTUPPRELOADITEM_H

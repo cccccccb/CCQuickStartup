@@ -7,7 +7,7 @@
 #include "items/appstartupitemattached.h"
 #include "items/appstartuptransitiongroup.h"
 #include "items/appstartupitem.h"
-#include "items/apppreloaditem.h"
+#include "items/appstartuppreloaditem.h"
 
 #include <QPluginLoader>
 #include <QQmlIncubator>

@@ -3,7 +3,7 @@
 
 #include "appstartupcomponent.h"
 
-#include "items/apppreloaditem.h"
+#include "items/appstartuppreloaditem.h"
 
 class AppStartupPreloadInterface;
 
