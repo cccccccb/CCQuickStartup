@@ -2,12 +2,11 @@
 #include "appstartupinstance_p.h"
 #include "appstartuptransitionmanager.h"
 #include "items/appstartupitem.h"
-#include "items/appstartuppreloadattached.h"
 #include "items/appstartupinitialproperties.h"
 #include "items/appstartuptransitiongroup.h"
+#include "items/apppreloaditem.h"
 
 #include <private/qquickitem_p.h>
-
 
 static const QQuickItemPrivate::ChangeTypes changedTypes = QQuickItemPrivate::Geometry;
 
@@ -58,6 +57,19 @@ AppStartupComponent *AppStartupComponent::binder() const
     return _binder;
 }
 
+QPointer<QQuickItem> AppStartupComponent::contentItem() const
+{
+    return _contentItem;
+}
+
+void AppStartupComponent::setContentItem(QQuickItem *item)
+{
+    if (_contentItem == item)
+        return;
+
+    _contentItem = item;
+}
+
 void AppStartupComponent::initRootItem(QQuickItem *item)
 {
     QQuickItemPrivate *wp = QQuickItemPrivate::get(item);
@@ -77,12 +89,11 @@ void AppStartupComponent::copyTransitionGroupFromBinder()
 
 QQmlContext *AppStartupComponent::transitionGroupContextFromBinder()
 {
-    AppStartupPreloadAttached *attached = qobject_cast<AppStartupPreloadAttached*>(
-        qmlAttachedPropertiesObject<AppStartupPreloadAttached>(dd->appWindow, false));
-    if (!attached)
+    AppPreloadItem *preloadItem = qmlobject_cast<AppPreloadItem *>(binder()->contentItem());
+    if (!preloadItem)
         return nullptr;
 
-    QQmlComponent *tgComponent = attached->transitionGroup();
+    QQmlComponent *tgComponent = preloadItem->transitionGroup();
     if (!tgComponent)
         return nullptr;
 
@@ -93,9 +104,9 @@ QQmlContext *AppStartupComponent::transitionGroupContextFromBinder()
     }
 }
 
-QVariantHash AppStartupComponent::initialItemProperties(QQuickItem *target, AppStartupInitialProperties *initialProperties)
+QVariantHash AppStartupComponent::initialItemProperties(QObject *target, AppStartupInitialProperties *initialProperties)
 {
-    if (!transitionGroup || !initialProperties)
+    if (!initialProperties)
         return {};
 
     QVariantHash rootPropertyHash;
@@ -114,25 +125,25 @@ QVariantHash AppStartupComponent::initialItemProperties(QQuickItem *target, AppS
     return prevPropertiesHash;
 }
 
-QVariantHash AppStartupComponent::initialItemProperties(QQuickItem *item, const QVariantHash &properties)
+QVariantHash AppStartupComponent::initialItemProperties(QObject *obj, const QVariantHash &properties)
 {
     QVariantHash prevPropertiesHash;
     QVariantHash applyPropertiesHash = properties;
 
-    const QMetaObject *itemMetaObject = item->metaObject();
+    const QMetaObject *itemMetaObject = obj->metaObject();
     for (int index = 0; index < itemMetaObject->propertyCount(); ++index) {
         const QMetaProperty &mtProp = itemMetaObject->property(index);
         const QString &dynamicProperty = QString::fromLatin1(mtProp.name());
 
         auto it = applyPropertiesHash.find(dynamicProperty);
         if (it != applyPropertiesHash.end()) {
-            // if (mtProp.isBindable() && mtProp.bindable(item).hasBinding()) {
+            // if (mtProp.isBindable() && mtProp.bindable(obj).hasBinding()) {
             //     auto binding = mtProp.bindable(item).takeBinding();
             //     qWarning() << "The item [" << item << "] has bind the property ["
             //                << dynamicProperty << "], but initial propeties needed it, removed!";
             // }
 
-            QQmlProperty prop(item, dynamicProperty, qmlEngine(item));
+            QQmlProperty prop(obj, dynamicProperty, qmlEngine(obj));
             QQmlPropertyPrivate *privProp = QQmlPropertyPrivate::get(prop);
             const bool isValid = prop.isValid();
             if (isValid) {
@@ -145,7 +156,7 @@ QVariantHash AppStartupComponent::initialItemProperties(QQuickItem *item, const 
     }
 
     for (auto noExistProp : applyPropertiesHash.keys())
-        qWarning() << "Dont find the propert: [" << noExistProp << "], from the target: " << item;
+        qWarning() << "Dont find the propert: [" << noExistProp << "], from the target: " << obj;
 
     //! ##TODO: support the vme meta properties.
 

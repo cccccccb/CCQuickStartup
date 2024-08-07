@@ -39,11 +39,11 @@ private:
     void destoryIncubator(QQmlIncubator *incubator);
     void finishedLoaded();
     void endOfTransition();
+    AppStartupItem *appRootItem() const;
 
 private:
     QScopedPointer<AppStartupEntityInterface> entityInstance;
     QQmlComponent *entityComponent = nullptr;
-    AppStartupItem *appRootItem = nullptr;
     QList<QQmlIncubator *> incubators;
     QVariantHash initialPropertiesHash;
 

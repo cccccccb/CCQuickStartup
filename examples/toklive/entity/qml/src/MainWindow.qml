@@ -33,7 +33,7 @@ AppStartupItem {
     onPopulateChanged: {
         if (populate) {
             Window.window.Frameless.canWindowResize = true
-            Window.window.Frameless.contentMargins = root.AppStartupItem.mainPane.anchors.margins
+            Window.window.Frameless.contentMargins = AppStartupItem.mainPane.anchors.margins
         }
     }
 }

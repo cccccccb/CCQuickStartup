@@ -6,15 +6,11 @@ import QtQuick.Effects
 import org.orange.quickstartup
 import org.orange.toklive
 
-Window {
+AppPreloadItem {
     id: root
-    visible: true
-    width: 800
-    height: 600
-    title: "TokLive"
-    color: "transparent"
 
-    AppPreloadItem.loadingOverlay: PreloadOverlay {
+    preloadView: AppPreloadItem.ApplicationWindow
+    loadingOverlay: PreloadOverlay {
         id: overlay
 
         Button {
@@ -37,33 +33,42 @@ Window {
             }
 
             Component.onCompleted: {
-               root.Frameless.moveExclude.push(skipButton)
+               root.window.Frameless.moveExclude.push(skipButton)
             }
 
             Component.onDestruction: {
-                root.Frameless.moveExclude = Array.from(root.Frameless.moveExclude).filter(r => r !== skipButton)
+                root.window.Frameless.moveExclude = Array.from(root.window.Frameless.moveExclude).filter(r => r !== skipButton)
             }
         }
 
         Component.onCompleted: {
-           root.Frameless.moveUnder.push(overlay)
+            root.window.Frameless.moveUnder.push(overlay)
         }
 
         Component.onDestruction: {
-            root.Frameless.moveUnder = Array.from(root.Frameless.moveUnder).filter(r => r !== overlay)
+            root.window.Frameless.moveUnder = Array.from(root.window.Frameless.moveUnder).filter(r => r !== overlay)
         }
     }
 
-    AppPreloadItem.autoExitOverlay: false
-    AppPreloadItem.overlayExitWhen: !preloadCountdown.running
-    AppPreloadItem.transitionGroup:  FlickTransition {}
+    autoExitOverlay: false
+    overlayExitWhen: !preloadCountdown.running
+    transitionGroup:  FlickTransition {}
+    initialProperties: InitialProperties {
+        readonly property bool visible: true
+        readonly property int width: 800
+        readonly property int height: 600
+        readonly property string title: "TokLive"
+        readonly property color color: "transparent"
+    }
 
     Countdown {
         id: preloadCountdown
-        interval: 1
+        interval: 10
         running: root.visible
     }
 
-    Frameless.enabled: true
-    Frameless.canWindowResize: false
+   onWindowChanged: {
+        root.window.Frameless.enabled = true
+        root.window.Frameless.canWindowResize = false
+    }
 }

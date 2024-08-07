@@ -3,8 +3,9 @@
 
 #include "appstartupcomponent.h"
 
+#include "items/apppreloaditem.h"
+
 class AppStartupPreloadInterface;
-class AppStartupPreloadAttached;
 
 class AppStartupPreloadComponent : public AppStartupComponent
 {
@@ -32,16 +33,16 @@ private Q_SLOTS:
     void _q_onWindowVisibleChanged(bool visible);
     void _q_onOverlayExitWhenChanged(bool changed);
 
+    void createWindow();
     void findWindowContentItem();
     void createOverlay();
     void clearOverlay();
-    void doOverlayAutoExitChanged(AppStartupPreloadAttached *attached);
+    void doOverlayAutoExitChanged(AppPreloadItem *attached);
+    AppPreloadItem *appPreloadItem() const;
 
 private:
     AppStartupPreloadInterface *preloadInstance = nullptr;
     QQuickItem *loadingOverlay = nullptr;
-    QMetaObject::Connection visibleConnection;
-    QMetaObject::Connection autoExitConnection;
     bool overlayUsingParentSize = false;
     QVariantHash initialPropertiesHash;
 };

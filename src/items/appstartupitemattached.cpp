@@ -1,4 +1,5 @@
 #include "appstartupitemattached.h"
+#include "appstartupitem.h"
 
 class AppStartupItemAttachedPrivate {
 public:
@@ -8,6 +9,7 @@ public:
 
     AppStartupItemAttached *_qq;
     bool _loaded = false;
+    AppStartupItem *_startupItem = nullptr;
     QMap<QByteArray, QObject *> _objects;
 };
 
@@ -36,5 +38,18 @@ void AppStartupItemAttached::setLoaded(bool loaded)
     Q_EMIT loadedChanged();
 }
 
-#include "moc_appstartupitemattached.cpp"
+AppStartupItem *AppStartupItemAttached::startupItem() const
+{
+    return dd->_startupItem;
+}
 
+void AppStartupItemAttached::setStartupItem(AppStartupItem *item)
+{
+    if (dd->_startupItem == item)
+        return;
+
+    dd->_startupItem = item;
+    Q_EMIT startupItemChanged();
+}
+
+#include "moc_appstartupitemattached.cpp"

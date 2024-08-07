@@ -45,6 +45,40 @@ void FramelessAttached::setCanWindowResize(bool newCanWindowResize)
     emit canWindowResizeChanged();
 }
 
+
+bool FramelessAttached::enabled() const
+{
+    return m_frameless->enabled();
+}
+
+void FramelessAttached::setEnabled(bool newEnable)
+{
+    if (m_frameless->enabled() == newEnable)
+        return;
+
+    if (newEnable) {
+        m_frameless->window()->installEventFilter(this);
+    } else {
+        m_frameless->window()->removeEventFilter(this);
+    }
+
+    m_frameless->setEnabled(newEnable);
+    emit enabledChanged();
+}
+
+qreal FramelessAttached::contentMargins() const
+{
+    return m_frameless->contentMargins();
+}
+
+void FramelessAttached::setContentMargins(qreal newContentMargins)
+{
+    if (qFuzzyCompare(m_frameless->contentMargins(), newContentMargins))
+        return;
+    m_frameless->setContentMargins(newContentMargins);
+    emit contentMarginsChanged();
+}
+
 void FramelessAttached::activateWindow()
 {
     m_frameless->window()->setWindowStates(m_frameless->window()->windowStates() & ~Qt::WindowMinimized);
@@ -89,37 +123,4 @@ bool FramelessAttached::eventFilter(QObject *watched, QEvent *event)
     }
 
     return QObject::eventFilter(watched, event);
-}
-
-bool FramelessAttached::enabled() const
-{
-    return m_frameless->enabled();
-}
-
-void FramelessAttached::setEnabled(bool newEnable)
-{
-    if (m_frameless->enabled() == newEnable)
-        return;
-
-    if (newEnable) {
-        m_frameless->window()->installEventFilter(this);
-    } else {
-        m_frameless->window()->removeEventFilter(this);
-    }
-
-    m_frameless->setEnabled(newEnable);
-    emit enabledChanged();
-}
-
-qreal FramelessAttached::contentMargins() const
-{
-    return m_frameless->contentMargins();
-}
-
-void FramelessAttached::setContentMargins(qreal newContentMargins)
-{
-    if (qFuzzyCompare(m_frameless->contentMargins(), newContentMargins))
-        return;
-    m_frameless->setContentMargins(newContentMargins);
-    emit contentMarginsChanged();
 }

@@ -5,9 +5,9 @@
 #include "interface/appstartupentityinterface.h"
 #include "items/appstartupinitialproperties.h"
 #include "items/appstartupitemattached.h"
-#include "items/appstartuppreloadattached.h"
 #include "items/appstartuptransitiongroup.h"
 #include "items/appstartupitem.h"
+#include "items/apppreloaditem.h"
 
 #include <QPluginLoader>
 #include <QQmlIncubator>
@@ -49,7 +49,7 @@ void AppQmlComponentIncubator::statusChanged(QQmlIncubator::Status status)
     }
 
     AppStartupItemAttached *itemAttached = qobject_cast<AppStartupItemAttached*>(
-        qmlAttachedPropertiesObject<AppStartupItem>(entityComponent->appRootItem, true));
+        qmlAttachedPropertiesObject<AppStartupItem>(entityComponent->contentItem(), true));
     if (itemAttached) {
         QQmlContext *context = qmlContext(obj);
         itemAttached->insert(context->nameForObject(obj), QVariant::fromValue(obj));
@@ -61,16 +61,16 @@ void AppQmlComponentIncubator::statusChanged(QQmlIncubator::Status status)
 
 void AppQmlComponentIncubator::setInitialState(QObject *o)
 {
-    if (!entityComponent->appRootItem)
+    if (!entityComponent->contentItem())
         return;
 
     if (o) {
         QQmlContext *context = entityComponent->itemContextMap.value(compnent);
         if (context)
             QQml_setParent_noEvent(context, o);
-        QQml_setParent_noEvent(o, entityComponent->appRootItem);
+        QQml_setParent_noEvent(o, entityComponent->contentItem());
         if (QQuickItem *item = qmlobject_cast<QQuickItem *>(o))
-            item->setParentItem(entityComponent->appRootItem);
+            item->setParentItem(entityComponent->contentItem());
     }
 }
 
@@ -82,7 +82,7 @@ AppStartupEntityComponent::~AppStartupEntityComponent()
 
 QQuickItem *AppStartupEntityComponent::transitionItem()
 {
-    return appRootItem;
+    return contentItem();
 }
 
 QQuickTransition *AppStartupEntityComponent::transition()
@@ -99,15 +99,17 @@ void AppStartupEntityComponent::transitionFinish()
 {
     endOfTransition();
     if (transitionGroup && !initialPropertiesHash.isEmpty()) {
-        initialItemProperties(appRootItem, initialPropertiesHash);
+        AppStartupItem *rootItem = appRootItem();
+        initialItemProperties(rootItem, initialPropertiesHash);
         initialPropertiesHash.clear();
     }
 }
 
 void AppStartupEntityComponent::beforeTransition()
 {
-    if (transitionGroup)
-        initialPropertiesHash = initialItemProperties(appRootItem, transitionGroup->enterInitialProperties());
+    AppStartupItem *rootItem = appRootItem();
+    if (transitionGroup && rootItem)
+        initialPropertiesHash = initialItemProperties(rootItem, transitionGroup->enterInitialProperties());
 }
 
 bool AppStartupEntityComponent::load()
@@ -130,7 +132,7 @@ bool AppStartupEntityComponent::load()
                          this, &AppStartupEntityComponent::_q_onEntityComponentStatusChanged);
     } else {
         if (entityComponent->status() == QQmlComponent::Error) {
-            qWarning() << "AppStartupInstance: " << entityComponent->errors() << ", " << entityComponent->errorString();
+            qWarning() << "AppStartupInstance: " << entityComponent->errors() << ", " << qPrintable(entityComponent->errorString());
             return false;
         }
 
@@ -142,35 +144,46 @@ bool AppStartupEntityComponent::load()
 
 void AppStartupEntityComponent::finishedLoaded()
 {
+    AppStartupItem *rootItem = appRootItem();
     entityInstance->finishedLoading(dd->engine.get());
-    appRootItem->setLoaded(true);
+    rootItem->setLoaded(true);
 
-    AppStartupItemAttached *itemAttached = qobject_cast<AppStartupItemAttached*>(qmlAttachedPropertiesObject<AppStartupItem>(appRootItem, true));
+    AppStartupItemAttached *itemAttached = qobject_cast<AppStartupItemAttached*>(qmlAttachedPropertiesObject<AppStartupItem>(rootItem, true));
     if (itemAttached)
         itemAttached->setLoaded(true);
 
-    if (appRootItem == dd->defaultAppStartItem) {
-        AppStartupPreloadAttached *preloadAttached = qobject_cast<AppStartupPreloadAttached*>(qmlAttachedPropertiesObject<AppStartupPreloadAttached>(dd->appWindow, false));
-        if (preloadAttached)
-            preloadAttached->setLoaded(true);
+    if (rootItem == dd->defaultAppStartItem) {
+        AppPreloadItem *preloadItem = qmlobject_cast<AppPreloadItem *>(binder()->contentItem());
+        if (preloadItem)
+            preloadItem->setLoaded(true);
 
         Q_EMIT qq->loadFinished();
 
-        if (!preloadAttached || preloadAttached->autoExitOverlay())
+        if (!preloadItem || preloadItem->autoExitOverlay())
             startTransition();
 
-        appRootItem->setFocus(true);
+        rootItem->setFocus(true);
     }
 }
 
 void AppStartupEntityComponent::endOfTransition()
 {
-    if (appRootItem) {
-        appRootItem->setEnabled(true);
-        appRootItem->setFocus(true);
-        appRootItem->setVisible(true);
-        appRootItem->setPopulate(true);
+    AppStartupItem *rootItem = appRootItem();
+
+    if (rootItem) {
+        rootItem->setEnabled(true);
+        rootItem->setFocus(true);
+        rootItem->setVisible(true);
+        rootItem->setPopulate(true);
     }
+}
+
+AppStartupItem *AppStartupEntityComponent::appRootItem() const
+{
+    if (contentItem().isNull())
+        return nullptr;
+
+    return qmlobject_cast<AppStartupItem *>(contentItem());
 }
 
 void AppStartupEntityComponent::destoryIncubator(QQmlIncubator *incubator)
@@ -189,17 +202,13 @@ void AppStartupEntityComponent::_q_onEntityComponentStatusChanged(QQmlComponent:
 {
     if (status != QQmlComponent::Ready) {
         if (status == QQmlComponent::Error)
-            qWarning() << "AppStartupInstance: " << entityComponent->errors() << ", " << entityComponent->errorString();
+            qWarning() << "AppStartupInstance: " << entityComponent->errors() << ", " << qPrintable(entityComponent->errorString());
         return;
     }
 
     do {
         // ApplicationWindow.
         if (createObjects(APPLICATIONWINDOW_CONTENTDATA))
-            break;
-
-        // DialogWindow.
-        if (createObjects(DIALOGWINDOW_CONTENTDATA))
             break;
 
         // Window.
@@ -213,13 +222,15 @@ void AppStartupEntityComponent::_q_onEntityComponentStatusChanged(QQmlComponent:
 
 void AppStartupEntityComponent::_q_onComponentProgressChanged()
 {
+    AppStartupItem *rootItem = appRootItem();
     qreal progress = 0;
-    auto components = appRootItem->findChildren<QQmlComponent *>();
+    auto components = rootItem->findChildren<QQmlComponent *>();
+
     for (auto childCom : std::as_const(components)) {
         progress += childCom->progress();
     }
 
-    appRootItem->setProgress(progress / components.count());
+    rootItem->setProgress(progress / components.count());
 }
 
 void AppStartupEntityComponent::itemGeometryChanged(QQuickItem *item, QQuickGeometryChange change, const QRectF &oldGeometry)
@@ -237,31 +248,33 @@ bool AppStartupEntityComponent::createObjects(const char *propertyName)
 
     copyTransitionGroupFromBinder();
     QObject *object = entityComponent->beginCreate(creationContext(entityComponent, dd->appWindow));
-    appRootItem = qobject_cast<AppStartupItem *>(object);
+    setContentItem(qobject_cast<AppStartupItem *>(object));
+
     if (entityComponent->isError()) {
         qWarning() << "The entity component create failed: " << entityComponent->errors();
     }
 
-    Q_ASSERT_X(appRootItem, "AppStartupInstance", qPrintable("Create the AppStartupItem item failed!"));
+    AppStartupItem *rootItem = appRootItem();
+    Q_ASSERT_X(rootItem, "AppStartupInstance", qPrintable("Create the AppStartupItem item failed!"));
 
     if (QQmlContext *context = transitionGroupContextFromBinder())
-        context->setContextProperty(QLatin1String("enterTarget"), appRootItem);
+        context->setContextProperty(QLatin1String("enterTarget"), rootItem);
 
-    appRootItem->setContainWindow(dd->appWindow);
-    appRootItem->setEnabled(false);
-    appRootItem->setVisible(false);
+    rootItem->setContainWindow(dd->appWindow);
+    rootItem->setEnabled(false);
+    rootItem->setVisible(false);
 
     entityComponent->completeCreate();
 
     if (dd->defaultComponentGroup.entity() == this->information)
-        dd->defaultAppStartItem = appRootItem;
+        dd->defaultAppStartItem = rootItem;
 
-    AppStartupPreloadAttached *preloadAttached = qobject_cast<AppStartupPreloadAttached*>(qmlAttachedPropertiesObject<AppStartupPreloadAttached>(dd->appWindow, false));
-    if ((dd->defaultComponentGroup.entity() == this->information) && preloadAttached) {
-        preloadAttached->setStartupItem(appRootItem);
+    AppPreloadItem *preloadItem = qmlobject_cast<AppPreloadItem *>(binder()->contentItem());
+    if ((dd->defaultComponentGroup.entity() == this->information) && preloadItem) {
+        preloadItem->setStartupItem(rootItem);
     }
 
-    pros.append(appRootItem);
+    pros.append(rootItem);
     initRootItem(dd->windowContentItem);
     updateRootItemSize(dd->windowContentItem);
     createChildComponents();
@@ -270,7 +283,8 @@ bool AppStartupEntityComponent::createObjects(const char *propertyName)
 
 void AppStartupEntityComponent::createChildComponents()
 {
-    auto components = appRootItem->findChildren<QQmlComponent *>(QStringLiteral(""), Qt::FindDirectChildrenOnly);
+    AppStartupItem *rootItem = appRootItem();
+    auto components = rootItem->findChildren<QQmlComponent *>(QStringLiteral(""), Qt::FindDirectChildrenOnly);
     childrenCount = components.size();
 
     if (childrenCount == 0) {
@@ -281,29 +295,30 @@ void AppStartupEntityComponent::createChildComponents()
     for (auto childCom : std::as_const(components)) {
         QObject::connect(childCom, &QQmlComponent::progressChanged, this,
                          &AppStartupEntityComponent::_q_onComponentProgressChanged);
-        auto asyn = appRootItem->asynchronous() ? AppQmlComponentIncubator::Asynchronous : AppQmlComponentIncubator::AsynchronousIfNested;
+        auto asyn = rootItem->asynchronous() ? AppQmlComponentIncubator::Asynchronous : AppQmlComponentIncubator::AsynchronousIfNested;
         AppQmlComponentIncubator *incubator = new AppQmlComponentIncubator(childCom, this, asyn);
         this->incubators.append(incubator);
-        childCom->create(*incubator, creationContext(childCom, appRootItem));
+        childCom->create(*incubator, creationContext(childCom, rootItem));
     }
 }
 
 void AppStartupEntityComponent::updateRootItemSize(QQuickItem *item)
 {
-    if (!appRootItem)
+    AppStartupItem *rootItem = appRootItem();
+    if (!rootItem)
         return;
 
     // The appRootItem always fills the window.
     QQuickItemPrivate *ip = QQuickItemPrivate::get(item);
     if (widthValid(ip)) {
-        appRootItem->setWidth(item->width());
+        rootItem->setWidth(item->width());
     } else {
-        appRootItem->setWidth(dd->appWindow->width());
+        rootItem->setWidth(dd->appWindow->width());
     }
 
     if (heightValid(ip)) {
-        appRootItem->setHeight(item->height());
+        rootItem->setHeight(item->height());
     } else {
-        appRootItem->setWidth(dd->appWindow->height());
+        rootItem->setWidth(dd->appWindow->height());
     }
 }

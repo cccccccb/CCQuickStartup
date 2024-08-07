@@ -22,6 +22,9 @@ public:
     void setBinder(AppStartupComponent *binder);
     AppStartupComponent *binder() const;
 
+    QPointer<QQuickItem> contentItem() const;
+    void setContentItem(QQuickItem *item);
+
     virtual AppStartupComponentInformation::StartComponent componentType() = 0;
     virtual bool load() { return false; }
 
@@ -42,14 +45,16 @@ protected:
 
     void copyTransitionGroupFromBinder();
     QQmlContext *transitionGroupContextFromBinder();
-    QVariantHash initialItemProperties(QQuickItem *target, AppStartupInitialProperties *initialProperties);
-    QVariantHash initialItemProperties(QQuickItem *item, const QVariantHash &properties);
+    QVariantHash initialItemProperties(QObject *target, AppStartupInitialProperties *initialProperties);
+    QVariantHash initialItemProperties(QObject *obj, const QVariantHash &properties);
 
     AppStartupInstance *qq = nullptr;
     AppStartupInstancePrivate *dd = nullptr;
 
     AppStartupComponent *_binder = nullptr;
     AppStartupComponentInformation information;
+
+    QPointer<QQuickItem> _contentItem = nullptr;
 
     bool duringTransition = false;
     AppStartUpTransitionManager *transitionManager = nullptr;

@@ -3,7 +3,6 @@
 #include "defines_p.h"
 
 #include "interface/appstartuppreloadinterface.h"
-#include "items/appstartuppreloadattached.h"
 #include "items/appstartupitem.h"
 #include "items/appstartuptransitiongroup.h"
 
@@ -16,18 +15,23 @@
 
 #include "private/qquicktransition_p.h"
 
-void AppStartupPreloadComponent::doOverlayAutoExitChanged(AppStartupPreloadAttached *attached)
+void AppStartupPreloadComponent::doOverlayAutoExitChanged(AppPreloadItem *attached)
 {
-    if (attached->autoExitOverlay()) {
-        if (autoExitConnection)
-            QObject::disconnect(autoExitConnection);
-    } else {
-        autoExitConnection = QObject::connect(attached, &AppStartupPreloadAttached::overlayExitWhenChanged,
-                                              this, &AppStartupPreloadComponent::_q_onOverlayExitWhenChanged);
+    if (!attached->autoExitOverlay()) {
+        QObject::connect(attached, &AppPreloadItem::overlayExitWhenChanged,
+                         this, &AppStartupPreloadComponent::_q_onOverlayExitWhenChanged, Qt::SingleShotConnection);
         if (attached->overlayExitWhen()) {
             _q_onOverlayExitWhenChanged(true);
         }
     }
+}
+
+AppPreloadItem *AppStartupPreloadComponent::appPreloadItem() const
+{
+    if (contentItem().isNull())
+        return nullptr;
+
+    return qmlobject_cast<AppPreloadItem *>(contentItem());
 }
 
 void AppStartupPreloadComponent::clearOverlay()
@@ -39,10 +43,8 @@ void AppStartupPreloadComponent::clearOverlay()
     loadingOverlay->setVisible(false);
     loadingOverlay->deleteLater();
     loadingOverlay = nullptr;
-    AppStartupPreloadAttached *attached = qobject_cast<AppStartupPreloadAttached*>(
-        qmlAttachedPropertiesObject<AppStartupPreloadAttached>(dd->appWindow, false));
-    if (attached) {
-        QQmlContext *context = itemContextMap.take(attached->loadingOverlay());
+    if (AppPreloadItem *item = appPreloadItem()) {
+        QQmlContext *context = itemContextMap.take(item->loadingOverlay());
         delete context;
     }
 }
@@ -54,12 +56,40 @@ void AppStartupPreloadComponent::_q_onOverlayExitWhenChanged(bool changed)
     }
 }
 
+void AppStartupPreloadComponent::createWindow()
+{
+    AppPreloadItem *item = appPreloadItem();
+    if (!item)
+        return;
+
+    AppPreloadItem::PreloadView previewType = item->preloadView();
+    QQmlComponent *windowComponent = nullptr;
+    if (previewType == AppPreloadItem::Window) {
+        windowComponent = new QQmlComponent(dd->engine.get(), QUrl("qrc:/appstartup/qml/container/Window.qml"), QQmlComponent::PreferSynchronous);
+    } else if (previewType == AppPreloadItem::ApplicationWindow) {
+        windowComponent = new QQmlComponent(dd->engine.get(), QUrl("qrc:/appstartup/qml/container/ApplicationWindow.qml"), QQmlComponent::PreferSynchronous);
+    } else if (previewType == AppPreloadItem::Custom) {
+        windowComponent = item->customPreloadView();
+    }
+
+    Q_ASSERT_X(windowComponent, "AppPreloadItem", "Construct the window component failed!");
+    dd->appWindow = qobject_cast<QQuickWindow *>(windowComponent->beginCreate(creationContext(windowComponent, item)));
+    Q_ASSERT_X(dd->appWindow, "AppPreloadItem", qPrintable("Create window failed, error string: " + windowComponent->errorString()));
+    initialItemProperties(dd->appWindow, item->initialProperties());
+    item->setWindow(dd->appWindow);
+    windowComponent->completeCreate();
+
+    if (dd->appWindow->isVisible()) {
+        _q_onWindowVisibleChanged(true);
+    } else {
+        QObject::connect(dd->appWindow, &QQuickWindow::visibleChanged, this, &AppStartupPreloadComponent::_q_onWindowVisibleChanged, Qt::SingleShotConnection);
+    }
+}
+
 void AppStartupPreloadComponent::_q_onWindowVisibleChanged(bool visible)
 {
     if (visible) {
         preloadInstance->preloadCreated(dd->engine.get());
-        if (visibleConnection)
-            QObject::disconnect(visibleConnection);
     }
 }
 
@@ -111,8 +141,7 @@ void AppStartupPreloadComponent::beforeTransition()
 
 bool AppStartupPreloadComponent::load()
 {
-    const AppStartupComponentInformation &pluginInfo = this->information;
-    QPluginLoader loader(pluginInfo.path());
+    QPluginLoader loader(this->information.path());
     preloadInstance = qobject_cast<AppStartupPreloadInterface *>(loader.instance());
     if (!preloadInstance) {
         //! @todo add error
@@ -139,22 +168,10 @@ void AppStartupPreloadComponent::_q_onPreloadCreated(QObject *obj, const QUrl &o
         return;
     }
 
-    QQuickWindow *window = qmlobject_cast<QQuickWindow *>(obj);
-    if (!window) {
-        QCoreApplication::exit(-1);
-        return;
-    }
+    setContentItem(qmlobject_cast<AppPreloadItem *>(obj));
+    Q_ASSERT_X(contentItem(), "AppPreloadItem", "Preload root item only use the AppPreloadItem item!");
 
-    dd->appWindow = window;
-    Q_ASSERT(dd->appWindow);
-
-    if (dd->appWindow->isVisible()) {
-        _q_onWindowVisibleChanged(true);
-    } else {
-        visibleConnection = QObject::connect(dd->appWindow, &QQuickWindow::visibleChanged,
-                                             this, &AppStartupPreloadComponent::_q_onWindowVisibleChanged);
-    }
-
+    createWindow();
     findWindowContentItem();
     Q_ASSERT(dd->windowContentItem);
     initRootItem(dd->windowContentItem);
@@ -176,14 +193,6 @@ void AppStartupPreloadComponent::findWindowContentItem()
             dd->windowContentItem = qmlobject_cast<QQuickItem *>(objectsData.object);
             break;
         }
-
-        dataVariant = dd->appWindow->property(DIALOGWINDOW_CONTENTDATA);
-        if (dataVariant.isValid()) {
-            // DialogWindow
-            auto itemsData = dataVariant.value<QQmlListProperty<QQuickItem>>();
-            dd->windowContentItem = qmlobject_cast<QQuickItem *>(itemsData.object);
-            break;
-        }
     } while (false);
 
     // Window
@@ -196,12 +205,11 @@ void AppStartupPreloadComponent::createOverlay()
     if (loadingOverlay)
         return;
 
-    AppStartupPreloadAttached *attached = qobject_cast<AppStartupPreloadAttached*>(
-        qmlAttachedPropertiesObject<AppStartupPreloadAttached>(dd->appWindow, false));
-    if (!attached)
+    AppPreloadItem *preloadItem = appPreloadItem();
+    if (!preloadItem)
         return;
 
-    QQmlComponent *tgComponent = attached->transitionGroup();
+    QQmlComponent *tgComponent = preloadItem->transitionGroup();
     QQmlContext *tgContext = nullptr;
     if (tgComponent) {
         tgContext = creationContext(tgComponent, dd->windowContentItem);
@@ -209,7 +217,7 @@ void AppStartupPreloadComponent::createOverlay()
     }
 
     if (tgContext) {
-        tgContext->setContextProperty("enterTarget", attached->startupItem());
+        tgContext->setContextProperty("enterTarget", preloadItem->startupItem());
         tgContext->setContextProperty("leaveTarget", nullptr);
     } else {
         qWarning() << "No transition group or type is not the AppStartupTransitionGroup!";
@@ -218,18 +226,21 @@ void AppStartupPreloadComponent::createOverlay()
     if (tgComponent)
         tgComponent->completeCreate();
 
-    QQmlComponent *loComponent = attached->loadingOverlay();
+    QQmlComponent *loComponent = preloadItem->loadingOverlay();
     if (!loComponent)
         return;
 
-    QObject::connect(attached, &AppStartupPreloadAttached::autoExitOverlayChanged, this,
-                     std::bind(&AppStartupPreloadComponent::doOverlayAutoExitChanged, this, attached));
-    doOverlayAutoExitChanged(attached);
+    QObject::connect(preloadItem, &AppPreloadItem::autoExitOverlayChanged, this,
+                     std::bind(&AppStartupPreloadComponent::doOverlayAutoExitChanged, this, preloadItem));
+    doOverlayAutoExitChanged(preloadItem);
 
     QQmlContext *context = creationContext(loComponent, dd->windowContentItem);
     loadingOverlay = qobject_cast<QQuickItem *>(loComponent->beginCreate(context));
-    if (!loadingOverlay)
+    if (!loadingOverlay) {
+        loComponent->completeCreate();
+        qWarning() << "Create loading overlay failed, error string: " << qPrintable(loComponent->errorString());
         return;
+    }
 
     loadingOverlay->setParentItem(dd->windowContentItem);
     loadingOverlay->setZ(100);

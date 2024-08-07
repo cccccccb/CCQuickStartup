@@ -163,6 +163,7 @@ AppStartupItemAttached *AppStartupItem::qmlAttachedProperties(QObject *object)
 
         if (!attached) {
             attached = new AppStartupItemAttached(appRootItem);
+            attached->setStartupItem(appRootItem);
             appRootItem->dd->_attached = attached;
         }
     }
