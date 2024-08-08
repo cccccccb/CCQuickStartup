@@ -32,14 +32,16 @@ public:
 
     void scanPlugins();
     QList<AppStartupComponentGroup> availablePlugins() const;
+    QList<AppStartupComponentGroup> defaultPlugins() const;
     QList<AppStartupComponentGroup> loadedPlugins() const;
 
     void addReloadPlugin(const AppStartupComponentGroup &plugin);
     void removeReloadPlugin(const AppStartupComponentGroup &plugin);
 
     void reload();
-    int exec(int &argc, char **argv);
+    void load(const AppStartupComponentGroup &plugin);
 
+    int exec(int &argc, char **argv);
     static AppStartupInstance *instance() { return self; }
 
 Q_SIGNALS:

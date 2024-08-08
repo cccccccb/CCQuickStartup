@@ -42,11 +42,11 @@ private:
     AppStartupItem *appRootItem() const;
 
 private:
-    QScopedPointer<AppStartupEntityInterface> entityInstance;
+    AppStartupEntityInterface *entityInstance;
+
     QQmlComponent *entityComponent = nullptr;
     QList<QQmlIncubator *> incubators;
     QVariantHash initialPropertiesHash;
-
     int childrenCount = 0;
 };
 

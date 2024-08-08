@@ -40,8 +40,6 @@ public:
     QString appId;
 
     QScopedPointer<AppStartupComponentFactory> componentFactory;
-    QQuickWindow *appWindow = nullptr;
-    QPointer<QQuickItem> windowContentItem;
     QPointer<AppStartupItem> defaultAppStartItem;
     AppStartupComponentGroup defaultComponentGroup;
 

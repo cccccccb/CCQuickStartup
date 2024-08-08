@@ -15,6 +15,7 @@ class AppStartUpTransitionManager;
 class AppStartupComponent : public QObject, public QQuickItemChangeListener
 {
     friend class AppQmlComponentIncubator;
+    friend class AppStartupInstancePrivate;
 public:
     AppStartupComponent(const AppStartupComponentInformation &plugin, AppStartupInstancePrivate *dd);
     ~AppStartupComponent();
@@ -40,26 +41,37 @@ public:
 
 protected:
     QQmlContext *creationContext(QQmlComponent *component, QObject *obj);
+
     void initRootItem(QQuickItem *item);
     void deinitRootInit(QQuickItem *item);
+    void findWindowContentItem();
 
     void copyTransitionGroupFromBinder();
-    QQmlContext *transitionGroupContextFromBinder();
+    QQmlContext *transitionGroupContextFromBinder() const;
+    QQuickWindow *appWindowFromBinder() const;
+    QQuickItem *windowContentItemFromBinder();
+
     QVariantHash initialItemProperties(QObject *target, AppStartupInitialProperties *initialProperties);
     QVariantHash initialItemProperties(QObject *obj, const QVariantHash &properties);
+
+    QObject *loadPlugin(const QString &path);
+    bool unloadPlugin();
 
     AppStartupInstance *qq = nullptr;
     AppStartupInstancePrivate *dd = nullptr;
 
+    QPluginLoader *_loader = nullptr;
     AppStartupComponent *_binder = nullptr;
-    AppStartupComponentInformation information;
+    AppStartupComponentInformation _information;
 
+    QQuickWindow *_appWindow = nullptr;
+    QPointer<QQuickItem> _windowContentItem;
     QPointer<QQuickItem> _contentItem = nullptr;
 
-    bool duringTransition = false;
-    AppStartUpTransitionManager *transitionManager = nullptr;
-    QHash<QQmlComponent *, QQmlContext *> itemContextMap;
-    QPointer<AppStartupTransitionGroup> transitionGroup = nullptr;
+    bool _duringTransition = false;
+    AppStartUpTransitionManager *_transitionManager = nullptr;
+    QHash<QQmlComponent *, QQmlContext *> _itemContextMap;
+    QPointer<AppStartupTransitionGroup> _transitionGroup = nullptr;
 
 private:
     void transitionFinishedImpl();

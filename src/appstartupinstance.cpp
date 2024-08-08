@@ -49,6 +49,11 @@ QList<AppStartupComponentGroup> AppStartupInstance::availablePlugins() const
     return dd->availablePlugins;
 }
 
+QList<AppStartupComponentGroup> AppStartupInstance::defaultPlugins() const
+{
+    return {};
+}
+
 QList<AppStartupComponentGroup> AppStartupInstance::loadedPlugins() const
 {
     return dd->loadedPluginsList;
@@ -75,6 +80,11 @@ void AppStartupInstance::reload()
     dd->reloadPlugins();
 }
 
+void AppStartupInstance::load(const AppStartupComponentGroup &plugin)
+{
+
+}
+
 int AppStartupInstance::exec(int &argc, char **argv)
 {
     dd->scanPlugins();
@@ -86,6 +96,9 @@ int AppStartupInstance::exec(int &argc, char **argv)
 
     if (!dd->app)
         dd->app.reset(new QGuiApplication(argc, argv));
+
+    if (!dd->engine)
+        dd->engine.reset(new QQmlApplicationEngine(this));
 
     if (!dd->reloadPlugins())
         return -1;

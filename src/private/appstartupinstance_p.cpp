@@ -41,7 +41,6 @@ AppStartupInstancePrivate::AppStartupInstancePrivate(AppStartupInstance *qq)
     : qq(qq)
     , engine (nullptr)
     , componentFactory(new AppStartupComponentFactory(this))
-    , appWindow(nullptr)
 {
     AppStartupInstance::self = qq;
 }
@@ -179,41 +178,17 @@ bool AppStartupInstancePrivate::reloadPlugins()
 
 void AppStartupInstancePrivate::unloadPlugins()
 {
-    if (appWindow) {
-        appWindow->close();
-        appWindow->destroy();
-        appWindow = nullptr;
-    }
-
-    qmlClearTypeRegistrations();
     defaultAppStartItem.clear();
     defaultComponentGroup = {};
 
-    if (engine) {
-        engine->clearSingletons();
+    if (engine)
         engine->clearComponentCache();
-    }
 
     // unload the exist plugins
     auto it = componentPluginHash.begin();
     while (it != componentPluginHash.end()) {
-        QString pluginPath = it.key().path();
-        QString appId = it.key().appId();
-
         it = componentPluginHash.erase(it);
-
-        if (!pluginPath.isEmpty()) {
-            QPluginLoader loader(pluginPath);
-            if (loader.isLoaded()) {
-                qInfo() << "Unload the plugin: " << appId << ", from path: "
-                        << pluginPath;
-                loader.unload();
-            }
-        }
     }
-
-    windowContentItem.clear();
-    engine.reset(new QQmlApplicationEngine(qq));
 }
 
 void AppStartupInstancePrivate::findDefaultComponentGroup()

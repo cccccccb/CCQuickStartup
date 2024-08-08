@@ -27,6 +27,7 @@ public:
 
 protected:
     void itemGeometryChanged(QQuickItem *item, QQuickGeometryChange change, const QRectF &oldGeometry) override;
+    AppPreloadItem *appPreloadItem() const;
 
 private Q_SLOTS:
     void _q_onPreloadCreated(QObject *obj, const QUrl &);
@@ -34,14 +35,13 @@ private Q_SLOTS:
     void _q_onOverlayExitWhenChanged(bool changed);
 
     void createWindow();
-    void findWindowContentItem();
     void createOverlay();
     void clearOverlay();
     void doOverlayAutoExitChanged(AppPreloadItem *attached);
-    AppPreloadItem *appPreloadItem() const;
 
 private:
     AppStartupPreloadInterface *preloadInstance = nullptr;
+
     QQuickItem *loadingOverlay = nullptr;
     bool overlayUsingParentSize = false;
     QVariantHash initialPropertiesHash;
