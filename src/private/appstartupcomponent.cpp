@@ -23,7 +23,7 @@ AppStartupComponent::AppStartupComponent(const AppStartupComponentInformation &p
 
 AppStartupComponent::~AppStartupComponent()
 {
-    qDeleteAll(_itemContextMap.values());
+    qDeleteAll(_itemContextMap);
     _itemContextMap.clear();
 
     if (_transitionManager) {
@@ -88,6 +88,11 @@ void AppStartupComponent::setContentItem(QQuickItem *item)
         return;
 
     _contentItem = item;
+}
+
+AppStartupComponentInformation AppStartupComponent::information() const
+{
+    return _information;
 }
 
 void AppStartupComponent::initRootItem(QQuickItem *item)
@@ -222,7 +227,7 @@ QVariantHash AppStartupComponent::initialItemProperties(QObject *obj, const QVar
         }
     }
 
-    for (auto noExistProp : applyPropertiesHash.keys())
+    for (const auto &noExistProp : applyPropertiesHash.keys())
         qWarning() << "Dont find the propert: [" << noExistProp << "], from the target: " << obj;
 
     //! ##TODO: support the vme meta properties.

@@ -7,18 +7,18 @@ class TokLiveQmlInstance;
 class EdgeToEdgeModeHelper;
 class QJSEngine;
 
-class TokLivePlugin : public QQmlExtensionPlugin
+class TokLiveControlExtension : public QQmlExtensionPlugin
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID QQmlExtensionInterface_iid)
 
 public:
-    explicit TokLivePlugin(QObject *parent = nullptr);
-    ~TokLivePlugin() override;;
+    explicit TokLiveControlExtension(QObject *parent = nullptr);
+    ~TokLiveControlExtension() override;;
 
     void registerTypes(const char *uri) override;
     void initializeEngine(QQmlEngine *engine, const char *uri) override;
-private:
+
     QObject *edge_to_edge_singleton_type_provider(QQmlEngine *engine, QJSEngine *scriptEngine);
     QObject *toklive_singleton_type_provider(QQmlEngine *engine, QJSEngine *scriptEngine);
 

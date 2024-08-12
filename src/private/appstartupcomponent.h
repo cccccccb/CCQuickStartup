@@ -26,6 +26,8 @@ public:
     QPointer<QQuickItem> contentItem() const;
     void setContentItem(QQuickItem *item);
 
+    AppStartupComponentInformation information() const;
+
     virtual AppStartupComponentInformation::StartComponent componentType() = 0;
     virtual bool load() { return false; }
 

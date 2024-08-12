@@ -3,6 +3,7 @@
 
 #include <QIcon>
 #include <QQmlApplicationEngine>
+#include <QTimer>
 
 TokLiveEntity::TokLiveEntity(QObject *parent)
     : QObject{parent}
@@ -20,5 +21,8 @@ QUrl TokLiveEntity::entityComponentPath() const
 
 void TokLiveEntity::initialize(QQmlApplicationEngine *)
 {
+    QTimer::singleShot(20000, []() {
+        AppStartupInstance::instance()->reload();
+    });
     QIcon::setThemeName("TokLive-desktop");
 }

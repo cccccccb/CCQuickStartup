@@ -7,6 +7,24 @@
 #include <QDir>
 #include <QSurfaceFormat>
 
+// #include <QtQml/qqmlextensionplugin.h>
+
+// Q_IMPORT_QML_PLUGIN(TokLiveControlExtension)
+
+static QStringList buildinPluginPaths()
+{
+    QStringList result = { QLibraryInfo::path(QLibraryInfo::DataPath) + "/plugins" };
+    const auto ccPluginPath = qgetenv("TOKLIVE_QML_PLUGIN_PATH");
+    if (!ccPluginPath.isEmpty())
+        result.append(ccPluginPath);
+
+#ifdef TOKLIVE_QML_PLUGIN_PATH
+    result.append(TOKLIVE_QML_PLUGIN_PATH);
+#endif
+
+    return result;
+}
+
 TokLivePreload::TokLivePreload(QObject *parent)
     : QObject{parent}
 {}
@@ -26,10 +44,10 @@ void TokLivePreload::aboutToPreload(QQmlApplicationEngine *engine)
 
     QSurfaceFormat::setDefaultFormat(format);
 
-#ifdef CC_STARTUP_PLUGIN_PATH
-    engine->addImportPath(CC_STARTUP_PLUGIN_PATH);
-#endif
-    engine->addPluginPath(QLibraryInfo::path(QLibraryInfo::DataPath) + "/plugins");
+    const auto &pluginList = buildinPluginPaths();
+    for (const auto &path : pluginList) {
+        engine->addPluginPath(path);
+    }
 }
 
 QUrl TokLivePreload::preloadComponentPath() const

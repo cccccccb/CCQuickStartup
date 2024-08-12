@@ -65,9 +65,9 @@ void AppStartupPreloadComponent::createWindow()
     AppPreloadItem::PreloadSurface previewType = item->preloadSurface();
     QQmlComponent *windowComponent = nullptr;
     if (previewType == AppPreloadItem::WindowSurface) {
-        windowComponent = new QQmlComponent(dd->engine.get(), QUrl("qrc:/appstartup/qml/container/Window.qml"), QQmlComponent::PreferSynchronous);
+        windowComponent = new QQmlComponent(dd->engine.get(), QUrl("qrc:/appstartup/private/qml/container/Window.qml"), QQmlComponent::PreferSynchronous);
     } else if (previewType == AppPreloadItem::ApplicationWindowSurface) {
-        windowComponent = new QQmlComponent(dd->engine.get(), QUrl("qrc:/appstartup/qml/container/ApplicationWindow.qml"), QQmlComponent::PreferSynchronous);
+        windowComponent = new QQmlComponent(dd->engine.get(), QUrl("qrc:/appstartup/private/qml/container/ApplicationWindow.qml"), QQmlComponent::PreferSynchronous);
     } else if (previewType == AppPreloadItem::CustomSurface) {
         windowComponent = item->customPreloadSurface();
     }

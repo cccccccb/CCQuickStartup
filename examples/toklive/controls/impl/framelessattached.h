@@ -17,11 +17,8 @@ class FramelessAttached : public QObject
     Q_PROPERTY(bool canWindowResize READ canWindowResize WRITE setCanWindowResize NOTIFY canWindowResizeChanged FINAL)
     Q_PROPERTY(qreal contentMargins READ contentMargins WRITE setContentMargins NOTIFY contentMarginsChanged FINAL)
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     QML_UNCREATABLE("FramelessAttached Attached.")
-    QML_NAMED_ELEMENT(FramelessAttached)
-    QML_ATTACHED(FramelessAttached)
-#endif
+    QML_NAMED_ELEMENT(Frameless)
 
 public:
     explicit FramelessAttached(QQuickWindow *parent);

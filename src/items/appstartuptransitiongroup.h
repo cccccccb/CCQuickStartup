@@ -13,6 +13,7 @@ QT_END_NAMESPACE
 class AppStartupItem;
 class AppStartupInitialProperties;
 class AppStartupTransitionGroupPrivate;
+
 class CC_QUICKSTARTUP_EXPORT AppStartupTransitionGroup : public QObject
 {
     Q_OBJECT

@@ -1,7 +1,0 @@
-<RCC>
-    <qresource prefix="/appstartup">
-        <file>qml/tansition/FlickTransition.qml</file>
-        <file>qml/container/ApplicationWindow.qml</file>
-        <file>qml/container/Window.qml</file>
-    </qresource>
-</RCC>

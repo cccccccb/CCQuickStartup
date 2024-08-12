@@ -3,7 +3,7 @@ import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Effects
 
-import org.orange.quickstartup
+import org.orange.startup
 import org.orange.toklive
 
 AppPreloadItem {

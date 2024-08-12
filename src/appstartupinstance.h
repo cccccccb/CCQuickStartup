@@ -30,7 +30,6 @@ public:
     void addPluginPath(const QString &dir);
     QStringList pluginPaths() const;
 
-    void scanPlugins();
     QList<AppStartupComponentGroup> availablePlugins() const;
     QList<AppStartupComponentGroup> defaultPlugins() const;
     QList<AppStartupComponentGroup> loadedPlugins() const;
@@ -40,6 +39,7 @@ public:
 
     void reload();
     void load(const AppStartupComponentGroup &plugin);
+    void scanPlugins();
 
     int exec(int &argc, char **argv);
     static AppStartupInstance *instance() { return self; }

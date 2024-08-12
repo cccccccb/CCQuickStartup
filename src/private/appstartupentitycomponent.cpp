@@ -210,18 +210,23 @@ void AppStartupEntityComponent::_q_onEntityComponentStatusChanged(QQmlComponent:
         return;
     }
 
+    bool success = false;
     do {
         // ApplicationWindow.
-        if (createObjects(APPLICATIONWINDOW_CONTENTDATA))
+        success = createObjects(APPLICATIONWINDOW_CONTENTDATA);
+        if (success)
             break;
 
         // Window.
-        if (createObjects(WINDOW_CONTENTDATA))
+        success = createObjects(WINDOW_CONTENTDATA);
+        if (success)
             break;
     } while (false);
 
     entityComponent->deleteLater();
     entityComponent = nullptr;
+
+    dd->loadedPluginsList += AppStartupComponentGroup({binder()->information(), this->information()});
 }
 
 void AppStartupEntityComponent::_q_onComponentProgressChanged()

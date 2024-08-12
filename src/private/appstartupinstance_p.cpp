@@ -168,8 +168,7 @@ void AppStartupInstancePrivate::detachAvailablePluginsChange(const QList<AppStar
 
 bool AppStartupInstancePrivate::reloadPlugins()
 {
-    if (reloadPluginsList.isEmpty())
-        return false;
+    reloadPluginsList += loadedPluginsList;
 
     unloadPlugins();
     findDefaultComponentGroup();
@@ -189,6 +188,8 @@ void AppStartupInstancePrivate::unloadPlugins()
     while (it != componentPluginHash.end()) {
         it = componentPluginHash.erase(it);
     }
+
+    loadedPluginsList.clear();
 }
 
 void AppStartupInstancePrivate::findDefaultComponentGroup()

@@ -59,5 +59,5 @@ private:
     bool m_populate;
 };
 
-QML_DECLARE_TYPEINFO(AppStartupItemAttached, QML_HAS_ATTACHED_PROPERTIES)
+QML_DECLARE_TYPEINFO(AppStartupItem, QML_HAS_ATTACHED_PROPERTIES)
 #endif  // DQUICKAppStartupITEM_H

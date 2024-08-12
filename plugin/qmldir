@@ -1,3 +1,0 @@
-module org.orange.quickstartup
-plugin CCQuickStartupExtension
-classname CCQuickStartupExtension

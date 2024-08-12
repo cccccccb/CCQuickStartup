@@ -87,18 +87,20 @@ void AppStartupInstance::load(const AppStartupComponentGroup &plugin)
 
 int AppStartupInstance::exec(int &argc, char **argv)
 {
+    if (!dd->app)
+        dd->app.reset(new QGuiApplication(argc, argv));
+
+    if (!dd->engine)
+        dd->engine.reset(new QQmlApplicationEngine(this));
+
+    addPluginPath(dd->app->applicationDirPath() + QLatin1String("/plugins"));
+
     dd->scanPlugins();
     dd->reloadPluginsList = dd->availablePlugins;
     if (dd->reloadPluginsList.empty()) {
         qFatal("No available plugins found!");
         return -1;
     }
-
-    if (!dd->app)
-        dd->app.reset(new QGuiApplication(argc, argv));
-
-    if (!dd->engine)
-        dd->engine.reset(new QQmlApplicationEngine(this));
 
     if (!dd->reloadPlugins())
         return -1;

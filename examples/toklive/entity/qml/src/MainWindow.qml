@@ -4,7 +4,7 @@ import QtQuick.Layouts
 import QtQuick.Controls.Material
 
 import org.orange.toklive
-import org.orange.quickstartup
+import org.orange.startup
 
 AppStartupItem {
     id: root

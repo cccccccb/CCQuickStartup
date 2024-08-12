@@ -17,8 +17,7 @@ class CC_QUICKSTARTUP_EXPORT AppStartupItemAttached : public QQmlPropertyMap
     Q_PROPERTY(AppStartupItem *startupItem READ startupItem NOTIFY startupItemChanged FINAL)
 
     QML_UNCREATABLE("AppStartupItemAttached Attached.")
-    QML_NAMED_ELEMENT(AppStartupItem)
-    QML_ATTACHED(AppStartupItemAttached)
+    QML_ANONYMOUS
 
     friend class AppQmlComponentIncubator;
 

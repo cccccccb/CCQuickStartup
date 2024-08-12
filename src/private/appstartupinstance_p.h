@@ -30,6 +30,7 @@ public:
     bool loadPreloadPlugins();
     void loadEntityPlugins();
     bool resolveMetaInfoFromObject(const QJsonObject &obj, AppStartupComponentInformation *info);
+    void processCommandLineArguments();
 
     static QStringList buildinPluginPaths();
 

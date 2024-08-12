@@ -1,19 +1,24 @@
 #include "toklive_plugin.h"
-#include "impl/edgetoedgemodehelper.h"
-#include "impl/tokliveqmlinstance.h"
-#include "impl/iconimageprovider.h"
 #include "impl/framelessattached.h"
+#include "impl/edgetoedgemodehelper.h"
+#include "impl/iconimageprovider.h"
+#include "impl/tokliveqmlinstance.h"
 
 #include <qqml.h>
 #include <QDebug>
 
-TokLivePlugin::TokLivePlugin(QObject *parent)
+QT_DECLARE_EXTERN_SYMBOL_VOID(qml_register_types_org_orange_toklive)
+
+TokLiveControlExtension::TokLiveControlExtension(QObject *parent)
     : QQmlExtensionPlugin(parent)
 {
-
+    qmlRegisterTypesAndRevisions<EdgeToEdgeModeHelper>("org.orange.toklive", 1);
+    qmlRegisterTypesAndRevisions<FramelessAttached>("org.orange.toklive", 1);
+    qmlRegisterTypesAndRevisions<TokLiveQmlInstance>("org.orange.toklive", 1);
+    qmlRegisterModule("org.orange.toklive", 1, 0);
 }
 
-TokLivePlugin::~TokLivePlugin()
+TokLiveControlExtension::~TokLiveControlExtension()
 {
     if (edgeToEdgeHelper) {
         delete edgeToEdgeHelper;
@@ -26,7 +31,7 @@ TokLivePlugin::~TokLivePlugin()
     }
 }
 
-QObject *TokLivePlugin::edge_to_edge_singleton_type_provider(QQmlEngine *engine, QJSEngine *scriptEngine)
+QObject *TokLiveControlExtension::edge_to_edge_singleton_type_provider(QQmlEngine *engine, QJSEngine *scriptEngine)
 {
     Q_UNUSED(engine)
     Q_UNUSED(scriptEngine)
@@ -36,7 +41,7 @@ QObject *TokLivePlugin::edge_to_edge_singleton_type_provider(QQmlEngine *engine,
     return edgeToEdgeHelper;
 }
 
-QObject *TokLivePlugin::toklive_singleton_type_provider(QQmlEngine *engine, QJSEngine *scriptEngine)
+QObject *TokLiveControlExtension::toklive_singleton_type_provider(QQmlEngine *engine, QJSEngine *scriptEngine)
 {
     Q_UNUSED(engine)
     Q_UNUSED(scriptEngine)
@@ -46,37 +51,44 @@ QObject *TokLivePlugin::toklive_singleton_type_provider(QQmlEngine *engine, QJSE
     return tokliveInstance;
 }
 
-void TokLivePlugin::registerTypes(const char *uri)
+void TokLiveControlExtension::registerTypes(const char *uri)
 {
     QByteArray implUri = QByteArray(uri).append(".impl");
     qmlRegisterModule(implUri.constData(), 1, 0);
 
     // @uri org.orange.toklive.impl
-    qmlRegisterSingletonType<EdgeToEdgeModeHelper *>(implUri, 1, 0, "EdgeToEdge", std::bind(&TokLivePlugin::edge_to_edge_singleton_type_provider, this,
-                                                                                        std::placeholders::_1, std::placeholders::_2));
-    qmlRegisterSingletonType<TokLiveQmlInstance *>(implUri, 1, 0, "TokLive", std::bind(&TokLivePlugin::toklive_singleton_type_provider, this,
-                                                                                   std::placeholders::_1, std::placeholders::_2));
+    qmlRegisterSingletonType<EdgeToEdgeModeHelper *>(implUri, 1, 0, "EdgeToEdge", std::bind(&TokLiveControlExtension::edge_to_edge_singleton_type_provider, this,
+                                                                                            std::placeholders::_1, std::placeholders::_2));
+    qmlRegisterSingletonType<TokLiveQmlInstance *>(implUri, 1, 0, "TokLive", std::bind(&TokLiveControlExtension::toklive_singleton_type_provider, this,
+                                                                                       std::placeholders::_1, std::placeholders::_2));
 
     // @uri org.orange.toklive
-    qmlRegisterSingletonType<EdgeToEdgeModeHelper *>(uri, 1, 0, "EdgeToEdge", std::bind(&TokLivePlugin::edge_to_edge_singleton_type_provider, this,
+    qmlRegisterSingletonType<EdgeToEdgeModeHelper *>(uri, 1, 0, "EdgeToEdge", std::bind(&TokLiveControlExtension::edge_to_edge_singleton_type_provider, this,
                                                                                         std::placeholders::_1, std::placeholders::_2));
-    qmlRegisterSingletonType<TokLiveQmlInstance *>(uri, 1, 0, "TokLive", std::bind(&TokLivePlugin::toklive_singleton_type_provider, this,
+    qmlRegisterSingletonType<TokLiveQmlInstance *>(uri, 1, 0, "TokLive", std::bind(&TokLiveControlExtension::toklive_singleton_type_provider, this,
                                                                                    std::placeholders::_1, std::placeholders::_2));
-    qmlRegisterSingletonType(QUrl("qrc:///Style/Style.qml"), uri, 1, 0, "Style");
     qmlRegisterUncreatableType<FramelessAttached>(uri, 1, 0, "Frameless", "Frameless is an abstract type that is only available as an attached property.");
 
-    qmlRegisterType(QUrl("qrc:/Controls/CheckedAnimateButton.qml"), uri, 1, 0, "CheckedAnimateButton");
-    qmlRegisterType(QUrl("qrc:/Controls/CustomButton.qml"), uri, 1, 0, "CustomButton");
-    qmlRegisterType(QUrl("qrc:/Controls/LineEdit.qml"), uri, 1, 0, "LineEdit");
-    qmlRegisterType(QUrl("qrc:/Controls/SearchEdit.qml"), uri, 1, 0, "SearchEdit");
-    qmlRegisterType(QUrl("qrc:/Controls/TokIcon.qml"), uri, 1, 0, "TokIcon");
+    QString qmlUriPrefix(QLatin1String("qrc:/") + QString(uri).replace(".", "/") + QLatin1String("/modules"));
+
+
+    qmlRegisterSingletonType(QUrl(qmlUriPrefix + "/Style/Style.qml"), uri, 1, 0, "Style");
+    qmlRegisterType(QUrl(qmlUriPrefix + "/Controls/CheckedAnimateButton.qml"), uri, 1, 0, "CheckedAnimateButton");
+    qmlRegisterType(QUrl(qmlUriPrefix + "/Controls/CustomButton.qml"), uri, 1, 0, "CustomButton");
+    qmlRegisterType(QUrl(qmlUriPrefix + "/Controls/LineEdit.qml"), uri, 1, 0, "LineEdit");
+    qmlRegisterType(QUrl(qmlUriPrefix + "/Controls/SearchEdit.qml"), uri, 1, 0, "SearchEdit");
+    qmlRegisterType(QUrl(qmlUriPrefix + "/Controls/TokIcon.qml"), uri, 1, 0, "TokIcon");
 }
 
-void TokLivePlugin::initializeEngine(QQmlEngine *engine, const char *uri)
+
+void TokLiveControlExtension::initializeEngine(QQmlEngine *engine, const char *uri)
 {
     engine->addImageProvider("toklive.icons", new IconImageProvider());
     engine->imageProvider("toklive.icons");
 
-    static_cast<EdgeToEdgeModeHelper *>(edge_to_edge_singleton_type_provider(nullptr, nullptr))->enable();
-    QQmlExtensionPlugin::initializeEngine(engine, uri);
+    if (EdgeToEdgeModeHelper *edgeToEdge = engine->singletonInstance<EdgeToEdgeModeHelper *>(qmlTypeId(uri, 1, 0, "EdgeToEdge"))) {
+        edgeToEdge->enable();
+    }
 }
+
+#include "toklive_plugin.moc"
