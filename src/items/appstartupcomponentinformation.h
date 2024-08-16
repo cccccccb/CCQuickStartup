@@ -17,7 +17,7 @@ class CC_QUICKSTARTUP_EXPORT AppStartupComponentInformation
     Q_PROPERTY(QString changelog READ changelog CONSTANT FINAL)
     Q_PROPERTY(bool isDefault READ isDefault CONSTANT FINAL)
     Q_PROPERTY(QString path READ path CONSTANT FINAL)
-    QML_NAMED_ELEMENT(ComponentInformation)
+    QML_ANONYMOUS
 
 public:
     AppStartupComponentInformation();

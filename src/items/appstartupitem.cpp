@@ -41,7 +41,7 @@ public:
 
     AppStartupItem *_qq;
     QList<QQmlComponent *> _childrenComponents;
-    QQuickWindow *_window = nullptr;
+    QQuickItem *_container = nullptr;
     bool _loaded = false;
     bool _asynchronous = false;
     qreal _progress = 0.0;
@@ -56,7 +56,7 @@ bool AppStartupItemPrivate::validKeyName(const QString& name)
     //The following strings shouldn't be used as property names
     return  name != QLatin1String("loaded")
            && name != QLatin1String("progress")
-           && name != QLatin1String("containWindow")
+           && name != QLatin1String("container")
            && name != QLatin1String("asynchronous")
            && name != QLatin1String("QObject")
            && name != QLatin1String("destroyed")
@@ -111,17 +111,17 @@ void AppStartupItem::setProgress(qreal progress)
     Q_EMIT progressChanged();
 }
 
-QQuickWindow *AppStartupItem::containWindow() const
+QQuickItem *AppStartupItem::container() const
 {
-    return dd->_window;
+    return dd->_container;
 }
 
-void AppStartupItem::setContainWindow(QQuickWindow *w)
+void AppStartupItem::setContainer(QQuickItem *c)
 {
-    if (w == dd->_window)
+    if (c == dd->_container)
         return;
-    dd->_window = w;
-    Q_EMIT containWindowChanged();
+    dd->_container = c;
+    Q_EMIT containerChanged();
 }
 
 bool AppStartupItem::asynchronous() const

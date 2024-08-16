@@ -39,6 +39,16 @@ QStringList AppStartupInstance::pluginPaths() const
     return paths;
 }
 
+void AppStartupInstance::setApplicationFactory(AppStartupApplicationFactory *factory)
+{
+    dd->applicationFactory = factory;
+}
+
+AppStartupApplicationFactory *AppStartupInstance::applicationFactory() const
+{
+    return dd->applicationFactory;
+}
+
 void AppStartupInstance::scanPlugins()
 {
     dd->scanPlugins();
@@ -49,9 +59,9 @@ QList<AppStartupComponentGroup> AppStartupInstance::availablePlugins() const
     return dd->availablePlugins;
 }
 
-QList<AppStartupComponentGroup> AppStartupInstance::defaultPlugins() const
+AppStartupComponentGroup AppStartupInstance::defaultPlugin() const
 {
-    return {};
+    return dd->defaultComponentGroup;
 }
 
 QList<AppStartupComponentGroup> AppStartupInstance::loadedPlugins() const
@@ -77,21 +87,32 @@ void AppStartupInstance::removeReloadPlugin(const AppStartupComponentGroup &plug
 
 void AppStartupInstance::reload()
 {
-    dd->reloadPlugins();
+    dd->reloadAllPlugins();
 }
 
 void AppStartupInstance::load(const AppStartupComponentGroup &plugin)
 {
+    if (!plugin.isValid())
+        return;
 
+    dd->loadPreloadPlugins(plugin);
+}
+
+void AppStartupInstance::unload(const AppStartupComponentGroup &plugin)
+{
+    if (!plugin.isValid())
+        return;
+
+    dd->unloadPlugin(plugin);
 }
 
 int AppStartupInstance::exec(int &argc, char **argv)
 {
     if (!dd->app)
-        dd->app.reset(new QGuiApplication(argc, argv));
+        dd->createApplication(argc, argv);
 
     if (!dd->engine)
-        dd->engine.reset(new QQmlApplicationEngine(this));
+        dd->createEngine();
 
     addPluginPath(dd->app->applicationDirPath() + QLatin1String("/plugins"));
 
@@ -102,7 +123,7 @@ int AppStartupInstance::exec(int &argc, char **argv)
         return -1;
     }
 
-    if (!dd->reloadPlugins())
+    if (!dd->reloadAllPlugins())
         return -1;
 
     return dd->app->exec();

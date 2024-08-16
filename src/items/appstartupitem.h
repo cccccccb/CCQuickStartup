@@ -2,13 +2,12 @@
 #define DQUICKAppStartupITEM_H
 
 #include <QQuickItem>
-#include <QQuickWindow>
 
 #include "ccquickstartup_global.h"
 
 QT_BEGIN_NAMESPACE
 class QQmlComponent;
-class QQuickWindow;
+class QQuickItem;
 QT_END_NAMESPACE
 
 class AppStartupItemPrivate;
@@ -17,7 +16,7 @@ class AppStartupItemAttached;
 class CC_QUICKSTARTUP_EXPORT AppStartupItem : public QQuickItem
 {
     Q_OBJECT
-    Q_PROPERTY(QQuickWindow *containWindow READ containWindow NOTIFY containWindowChanged)
+    Q_PROPERTY(QQuickItem *container READ container NOTIFY containerChanged)
     Q_PROPERTY(bool loaded READ loaded NOTIFY loadedChanged)
     Q_PROPERTY(bool populate READ populate NOTIFY populateChanged)
     Q_PROPERTY(qreal progress READ progress NOTIFY progressChanged)
@@ -36,8 +35,8 @@ public:
     qreal progress() const;
     void setProgress(qreal progress);
 
-    QQuickWindow *containWindow() const;
-    void setContainWindow(QQuickWindow *w);
+    QQuickItem *container() const;
+    void setContainer(QQuickItem *w);
 
     bool asynchronous() const;
     void setAsynchronous(bool a);
@@ -50,7 +49,7 @@ public:
 Q_SIGNALS:
     void loadedChanged();
     void progressChanged();
-    void containWindowChanged();
+    void containerChanged();
     void asynchronousChanged();
     void populateChanged();
 

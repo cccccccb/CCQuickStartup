@@ -1,5 +1,6 @@
 #include "appstartupitemattached.h"
 #include "appstartupitem.h"
+#include "appstartupcomponentinformation.h"
 
 class AppStartupItemAttachedPrivate {
 public:
@@ -50,6 +51,21 @@ void AppStartupItemAttached::setStartupItem(AppStartupItem *item)
 
     dd->_startupItem = item;
     Q_EMIT startupItemChanged();
+}
+
+void AppStartupItemAttached::loadComponent(const AppStartupComponentGroup &information, QQuickItem *container)
+{
+
+}
+
+void AppStartupItemAttached::unloadComponent(const AppStartupComponentGroup &information)
+{
+
+}
+
+QQuickItem *AppStartupItemAttached::componentContainer(const AppStartupComponentGroup &information) const
+{
+    return nullptr;
 }
 
 #include "moc_appstartupitemattached.cpp"

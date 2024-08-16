@@ -4,7 +4,7 @@
 #include <private/qquickitem_p.h>
 
 #define APPLICATIONWINDOW_CONTENTDATA "contentData"
-#define WINDOW_CONTENTDATA "data"
+#define WINDOW_OR_ITEM_CONTENTDATA "data"
 
 static inline bool heightValid(QQuickItemPrivate *item)
 {

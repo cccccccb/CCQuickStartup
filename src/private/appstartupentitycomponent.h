@@ -33,8 +33,10 @@ private Q_SLOTS:
     void _q_onComponentProgressChanged();
 
 private:
-    bool createObjects(const char *propertyName);
+    bool createObjects(const QQmlListReference &pros);
     void createChildComponents();
+    QQmlListReference findWindowDefaultDataRef();
+
     void updateRootItemSize(QQuickItem *item);
     void destoryIncubator(QQmlIncubator *incubator);
     void finishedLoaded();

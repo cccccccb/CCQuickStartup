@@ -23,14 +23,18 @@ public:
     QList<AppStartupComponentInformation> scanStaticPlugins();
     void detachAvailablePluginsChange(const QList<AppStartupComponentInformation> &plugins);
 
-    bool reloadPlugins();
-    void unloadPlugins();
+    bool reloadAllPlugins();
+    void unloadAllPlugins();
+    void unloadPlugin(const AppStartupComponentGroup &plugin);
 
     void findDefaultComponentGroup();
-    bool loadPreloadPlugins();
-    void loadEntityPlugins();
+    bool loadPreloadPlugins(const AppStartupComponentGroup &plugin);
+    void loadEntityPlugins(const AppStartupComponentGroup &plugin);
     bool resolveMetaInfoFromObject(const QJsonObject &obj, AppStartupComponentInformation *info);
     void processCommandLineArguments();
+
+    void createApplication(int &argc, char **argv);
+    void createEngine();
 
     static QStringList buildinPluginPaths();
 
@@ -40,8 +44,8 @@ public:
 
     QString appId;
 
+    AppStartupApplicationFactory *applicationFactory = nullptr;
     QScopedPointer<AppStartupComponentFactory> componentFactory;
-    QPointer<AppStartupItem> defaultAppStartItem;
     AppStartupComponentGroup defaultComponentGroup;
 
     QStringList pluginPaths;

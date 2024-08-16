@@ -4,6 +4,7 @@
 
 #include "interface/appstartuppreloadinterface.h"
 #include "items/appstartupitem.h"
+#include "items/appstartupitemattached.h"
 #include "items/appstartuptransitiongroup.h"
 
 #include <QQuickItem>
@@ -13,7 +14,7 @@
 #include <QQmlApplicationEngine>
 #include <QPluginLoader>
 
-#include "private/qquicktransition_p.h"
+#include <private/qquicktransition_p.h>
 
 void AppStartupPreloadComponent::doOverlayAutoExitChanged(AppPreloadItem *attached)
 {
@@ -24,6 +25,37 @@ void AppStartupPreloadComponent::doOverlayAutoExitChanged(AppPreloadItem *attach
             _q_onOverlayExitWhenChanged(true);
         }
     }
+}
+
+void AppStartupPreloadComponent::findContainerItem()
+{
+    if (_appSurfaceIsWindow) {
+        findWindowContentItem();
+    } else {
+        _containerContentItem = _surfacePointer.appSurfaceItem;
+    }
+}
+
+void AppStartupPreloadComponent::findWindowContentItem()
+{
+    if (!_surfacePointer.appSurfaceWindow)
+        return;
+
+    do {
+        QVariant dataVariant = _surfacePointer.appSurfaceWindow->property(APPLICATIONWINDOW_CONTENTDATA);
+        if (dataVariant.isValid()) {
+            // ApplicationWindow
+            auto objectsData = dataVariant.value<QQmlListProperty<QObject>>();
+            _containerContentItem = qmlobject_cast<QQuickItem *>(objectsData.object);
+            break;
+        }
+    } while (false);
+
+    // Window
+    if (!_containerContentItem)
+        _containerContentItem = _surfacePointer.appSurfaceWindow->contentItem();
+
+    //! @todo add custom surface property supported.
 }
 
 AppPreloadItem *AppStartupPreloadComponent::appPreloadItem() const
@@ -56,40 +88,79 @@ void AppStartupPreloadComponent::_q_onOverlayExitWhenChanged(bool changed)
     }
 }
 
-void AppStartupPreloadComponent::createWindow()
+bool AppStartupPreloadComponent::createSurface()
 {
     AppPreloadItem *item = appPreloadItem();
     if (!item)
-        return;
+        return false;
 
     AppPreloadItem::PreloadSurface previewType = item->preloadSurface();
-    QQmlComponent *windowComponent = nullptr;
+    QQmlComponent *surfaceComponent = nullptr;
     if (previewType == AppPreloadItem::WindowSurface) {
-        windowComponent = new QQmlComponent(dd->engine.get(), QUrl("qrc:/appstartup/private/qml/container/Window.qml"), QQmlComponent::PreferSynchronous);
+        surfaceComponent = new QQmlComponent(dd->engine.get(), QUrl("qrc:/appstartup/private/qml/container/Window.qml"), QQmlComponent::PreferSynchronous);
     } else if (previewType == AppPreloadItem::ApplicationWindowSurface) {
-        windowComponent = new QQmlComponent(dd->engine.get(), QUrl("qrc:/appstartup/private/qml/container/ApplicationWindow.qml"), QQmlComponent::PreferSynchronous);
-    } else if (previewType == AppPreloadItem::CustomSurface) {
-        windowComponent = item->customPreloadSurface();
+        surfaceComponent = new QQmlComponent(dd->engine.get(), QUrl("qrc:/appstartup/private/qml/container/ApplicationWindow.qml"), QQmlComponent::PreferSynchronous);
+    } if (previewType == AppPreloadItem::CustomSurface) {
+        surfaceComponent = item->customPreloadSurface();
     }
 
-    Q_ASSERT_X(windowComponent, "AppPreloadItem", "Construct the window component failed!");
-    _appWindow = qobject_cast<QQuickWindow *>(windowComponent->beginCreate(creationContext(windowComponent, item)));
-    Q_ASSERT_X(_appWindow, "AppPreloadItem", qPrintable("Create window failed, error string: " + windowComponent->errorString()));
-    initialItemProperties(_appWindow, item->initialProperties());
-    item->setWindow(_appWindow);
-    windowComponent->completeCreate();    
-
-    if (_appWindow->isVisible()) {
-        _q_onWindowVisibleChanged(true);
+    if (surfaceComponent) {
+        QObject *obj = surfaceComponent->beginCreate(creationContext(surfaceComponent, item));
+        QQuickWindow *window = qobject_cast<QQuickWindow *>(obj);
+        if (!window && dd->defaultComponentGroup == group()) {
+            qFatal() << "Default component surface is not Window, error: " << surfaceComponent->errorString();
+        } else if (window) {
+            _appSurfaceIsWindow = true;
+            _surfacePointer.appSurfaceWindow = window;
+        } else if (QQuickItem *item = qobject_cast<QQuickItem *>(obj)) {
+            _appSurfaceIsWindow = false;
+            _surfacePointer.appSurfaceItem = item;
+        } else {
+            qWarning() << "Could not create the surface component, error: " << surfaceComponent->errorString();
+            return false;
+        }
     } else {
-        QObject::connect(_appWindow, &QQuickWindow::visibleChanged, this, &AppStartupPreloadComponent::_q_onWindowVisibleChanged, Qt::SingleShotConnection);
+        auto defaultEntityComponent = dd->componentPluginHash.value(dd->defaultComponentGroup.entity());
+        AppStartupItemAttached *defaultEntityAttached = qobject_cast<AppStartupItemAttached*>(
+            qmlAttachedPropertiesObject<AppStartupItem>(defaultEntityComponent->contentItem(), false));
+        if (!defaultEntityAttached) {
+            qWarning() << "Could not find the default entity attached!";
+            return false;
+        }
+
+        QQuickItem *container = defaultEntityAttached->componentContainer(this->group());
+        if (!container) {
+            qWarning() << "Could not find the item component container";
+            return false;
+        }
+
+        _appSurfaceIsWindow = false;
+        _surfacePointer.appSurfaceItem = item;
     }
+
+    QObject *target = _appSurfaceIsWindow ? qobject_cast<QObject *>(_surfacePointer.appSurfaceWindow) : qobject_cast<QObject *>(_surfacePointer.appSurfaceItem);
+    initialItemProperties(target, item->initialProperties());
+
+    if (_appSurfaceIsWindow)
+        item->setWindow(_surfacePointer.appSurfaceWindow);
+
+    if (surfaceComponent)
+        surfaceComponent->completeCreate();
+
+    if (item->isVisible()) {
+        _q_onPreloadItemVisibleChanged();
+    } else {
+        QObject::connect(item, &QQuickItem::visibleChanged, this, &AppStartupPreloadComponent::_q_onPreloadItemVisibleChanged, Qt::SingleShotConnection);
+    }
+
+    return true;
 }
 
-void AppStartupPreloadComponent::_q_onWindowVisibleChanged(bool visible)
+void AppStartupPreloadComponent::_q_onPreloadItemVisibleChanged()
 {
-    if (visible) {
-        preloadInstance->preloadCreated(dd->engine.get());
+    if (QQuickItem *item = qobject_cast<QQuickItem *>(sender())) {
+        if (item->isVisible())
+            preloadInstance->preloadCreated(dd->engine.get());
     }
 }
 
@@ -127,9 +198,9 @@ void AppStartupPreloadComponent::transitionFinish()
 
     clearOverlay();
 
-    if (dd->defaultAppStartItem) {
-        dd->defaultAppStartItem->setEnabled(true);
-        dd->defaultAppStartItem->setVisible(true);
+    if (QQuickItem *item = binder()->contentItem()) {
+        item->setEnabled(true);
+        item->setVisible(true);
     }
 }
 
@@ -169,22 +240,26 @@ bool AppStartupPreloadComponent::load()
 void AppStartupPreloadComponent::_q_onPreloadCreated(QObject *obj, const QUrl &objUrl)
 {
     if (!obj && preloadInstance->preloadComponentPath() == objUrl) {
-        QCoreApplication::exit(-1);
+        qWarning() << "Create component preload failed!";
         return;
     }
 
     setContentItem(qmlobject_cast<AppPreloadItem *>(obj));
     Q_ASSERT_X(contentItem(), "AppPreloadItem", "Preload root item only use the AppPreloadItem item!");
 
-    createWindow();
-    findWindowContentItem();
-    Q_ASSERT(_windowContentItem);
+    if (!createSurface()) {
+        qWarning() << "Create component preload surface failed!";
+        return;
+    }
 
-    initRootItem(_windowContentItem);
-    appPreloadItem()->setParentItem(_windowContentItem);
+    findContainerItem();
+    Q_ASSERT(_containerContentItem);
+
+    initRootItem(_containerContentItem);
+    appPreloadItem()->setParentItem(_containerContentItem);
     createOverlay();
 
-    dd->loadEntityPlugins();
+    dd->loadEntityPlugins(group());
 }
 
 void AppStartupPreloadComponent::createOverlay()
@@ -199,7 +274,7 @@ void AppStartupPreloadComponent::createOverlay()
     QQmlComponent *tgComponent = preloadItem->transitionGroup();
     QQmlContext *tgContext = nullptr;
     if (tgComponent) {
-        tgContext = creationContext(tgComponent, _windowContentItem);
+        tgContext = creationContext(tgComponent, _containerContentItem);
         _transitionGroup = qobject_cast<AppStartupTransitionGroup *>(tgComponent->beginCreate(tgContext));
     }
 
@@ -221,7 +296,7 @@ void AppStartupPreloadComponent::createOverlay()
                      std::bind(&AppStartupPreloadComponent::doOverlayAutoExitChanged, this, preloadItem));
     doOverlayAutoExitChanged(preloadItem);
 
-    QQmlContext *context = creationContext(loComponent, _windowContentItem);
+    QQmlContext *context = creationContext(loComponent, _containerContentItem);
     loadingOverlay = qobject_cast<QQuickItem *>(loComponent->beginCreate(context));
     if (!loadingOverlay) {
         loComponent->completeCreate();
@@ -229,7 +304,7 @@ void AppStartupPreloadComponent::createOverlay()
         return;
     }
 
-    loadingOverlay->setParentItem(_windowContentItem);
+    loadingOverlay->setParentItem(_containerContentItem);
     loadingOverlay->setZ(100);
 
     if (tgContext)
@@ -240,11 +315,7 @@ void AppStartupPreloadComponent::createOverlay()
     QQuickItemPrivate *overlayPrivate = QQuickItemPrivate::get(loadingOverlay);
     if (!widthValid(overlayPrivate) || !heightValid(overlayPrivate)) {
         overlayUsingParentSize = true;
-        if (qFuzzyCompare(_windowContentItem->width(), 0) || qFuzzyCompare(_windowContentItem->height(), 0)) {
-            loadingOverlay->setSize(_appWindow->size());
-        } else {
-            loadingOverlay->setSize(_windowContentItem->size());
-        }
+        loadingOverlay->setSize(_containerContentItem->size());
     }
 
     dd->engine->setObjectOwnership(loadingOverlay, QQmlEngine::CppOwnership);

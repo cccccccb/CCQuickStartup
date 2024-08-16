@@ -31,13 +31,15 @@ protected:
 
 private Q_SLOTS:
     void _q_onPreloadCreated(QObject *obj, const QUrl &);
-    void _q_onWindowVisibleChanged(bool visible);
+    void _q_onPreloadItemVisibleChanged();
     void _q_onOverlayExitWhenChanged(bool changed);
 
-    void createWindow();
+    bool createSurface();
     void createOverlay();
     void clearOverlay();
     void doOverlayAutoExitChanged(AppPreloadItem *attached);
+    void findContainerItem();
+    void findWindowContentItem();
 
 private:
     AppStartupPreloadInterface *preloadInstance = nullptr;

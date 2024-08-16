@@ -34,20 +34,20 @@ AppStartupComponent::~AppStartupComponent()
         _transitionManager = nullptr;
     }
 
-    if (_windowContentItem) {
-        deinitRootInit(_windowContentItem);
+    if (_containerContentItem) {
+        deinitRootInit(_containerContentItem);
 
         if (AppStartupComponent *binder = this->binder())
-            binder->deinitRootInit(_windowContentItem);
+            binder->deinitRootInit(_containerContentItem);
 
-        _windowContentItem.clear();
+        _containerContentItem.clear();
     }
 
-    if (_appWindow) {
-        _appWindow->close();
-        _appWindow->destroy();
-        _appWindow->deleteLater();
-        _appWindow = nullptr;
+    if (_appSurfaceIsWindow && _surfacePointer.appSurfaceWindow) {
+        _surfacePointer.appSurfaceWindow->close();
+        _surfacePointer.appSurfaceWindow->destroy();
+        _surfacePointer.appSurfaceWindow->deleteLater();
+        _surfacePointer.appSurfaceWindow = nullptr;
     }
 
     unloadPlugin();
@@ -95,6 +95,16 @@ AppStartupComponentInformation AppStartupComponent::information() const
     return _information;
 }
 
+AppStartupComponentGroup AppStartupComponent::group() const
+{
+    return _group;
+}
+
+void AppStartupComponent::setGroup(const AppStartupComponentGroup &group)
+{
+    _group = group;
+}
+
 void AppStartupComponent::initRootItem(QQuickItem *item)
 {
     QQuickItemPrivate *wp = QQuickItemPrivate::get(item);
@@ -105,26 +115,6 @@ void AppStartupComponent::deinitRootInit(QQuickItem *item)
 {
     QQuickItemPrivate *wp = QQuickItemPrivate::get(item);
     wp->removeItemChangeListener(this, changedTypes);
-}
-
-void AppStartupComponent::findWindowContentItem()
-{
-    if (!_appWindow)
-        return;
-
-    do {
-        QVariant dataVariant = _appWindow->property(APPLICATIONWINDOW_CONTENTDATA);
-        if (dataVariant.isValid()) {
-            // ApplicationWindow
-            auto objectsData = dataVariant.value<QQmlListProperty<QObject>>();
-            _windowContentItem = qmlobject_cast<QQuickItem *>(objectsData.object);
-            break;
-        }
-    } while (false);
-
-    // Window
-    if (!_windowContentItem)
-        _windowContentItem = _appWindow->contentItem();
 }
 
 void AppStartupComponent::copyTransitionGroupFromBinder()
@@ -157,19 +147,22 @@ QQuickWindow *AppStartupComponent::appWindowFromBinder() const
     if (!binder())
         return nullptr;
 
-    QQuickWindow *window = qmlobject_cast<QQuickWindow *>(binder()->_appWindow);
+    if (!binder()->_appSurfaceIsWindow)
+        return nullptr;
+
+    QQuickWindow *window = binder()->_surfacePointer.appSurfaceWindow;
     if (!window)
         return nullptr;
 
     return window;
 }
 
-QQuickItem *AppStartupComponent::windowContentItemFromBinder()
+QQuickItem *AppStartupComponent::containerContentItemFromBinder()
 {
     if (!binder())
         return nullptr;
 
-    QQuickItem *contentItem = qmlobject_cast<QQuickItem *>(binder()->_windowContentItem);
+    QQuickItem *contentItem = qmlobject_cast<QQuickItem *>(binder()->_containerContentItem);
     if (!contentItem)
         return nullptr;
 

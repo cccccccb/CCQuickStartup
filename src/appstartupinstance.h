@@ -15,6 +15,7 @@ class QGuiApplication;
 class QQuickTransition;
 QT_END_NAMESPACE
 
+class AppStartupApplicationFactory;
 class AppStartupInstancePrivate;
 
 class CC_QUICKSTARTUP_EXPORT AppStartupInstance : public QObject
@@ -30,22 +31,27 @@ public:
     void addPluginPath(const QString &dir);
     QStringList pluginPaths() const;
 
+    void setApplicationFactory(AppStartupApplicationFactory *factory);
+    AppStartupApplicationFactory *applicationFactory() const;
+
     QList<AppStartupComponentGroup> availablePlugins() const;
-    QList<AppStartupComponentGroup> defaultPlugins() const;
     QList<AppStartupComponentGroup> loadedPlugins() const;
+    AppStartupComponentGroup defaultPlugin() const;
 
     void addReloadPlugin(const AppStartupComponentGroup &plugin);
     void removeReloadPlugin(const AppStartupComponentGroup &plugin);
 
     void reload();
-    void load(const AppStartupComponentGroup &plugin);
     void scanPlugins();
+
+    void load(const AppStartupComponentGroup &plugin);
+    void unload(const AppStartupComponentGroup &plugin);
 
     int exec(int &argc, char **argv);
     static AppStartupInstance *instance() { return self; }
 
 Q_SIGNALS:
-    void loadFinished();
+    void loadFinished(const AppStartupComponentGroup &plugin);
     void availablePluginsChanged();
 
 private:

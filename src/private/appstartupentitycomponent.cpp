@@ -156,17 +156,22 @@ void AppStartupEntityComponent::finishedLoaded()
     if (itemAttached)
         itemAttached->setLoaded(true);
 
-    if (rootItem == dd->defaultAppStartItem) {
-        AppPreloadItem *preloadItem = qmlobject_cast<AppPreloadItem *>(binder()->contentItem());
-        if (preloadItem)
-            preloadItem->setLoaded(true);
+    AppPreloadItem *preloadItem = qmlobject_cast<AppPreloadItem *>(binder()->contentItem());
+    if (preloadItem)
+        preloadItem->setLoaded(true);
 
-        Q_EMIT qq->loadFinished();
+    if (!preloadItem || preloadItem->autoExitOverlay())
+        startTransition();
 
-        if (!preloadItem || preloadItem->autoExitOverlay())
-            startTransition();
+    rootItem->setFocus(true);
 
-        rootItem->setFocus(true);
+    AppStartupComponentGroup plugin({binder()->information(), this->information()});
+    dd->loadedPluginsList += plugin;
+    Q_EMIT qq->loadFinished(plugin);
+
+    for (auto it = dd->reloadPluginsList.begin(); it != dd->reloadPluginsList.end();) {
+        dd->loadPreloadPlugins(*it);
+        it = dd->reloadPluginsList.erase(it);
     }
 }
 
@@ -210,23 +215,19 @@ void AppStartupEntityComponent::_q_onEntityComponentStatusChanged(QQmlComponent:
         return;
     }
 
-    bool success = false;
-    do {
-        // ApplicationWindow.
-        success = createObjects(APPLICATIONWINDOW_CONTENTDATA);
-        if (success)
-            break;
+    QQmlListReference ref = findWindowDefaultDataRef();
+    if (!ref.isValid()) {
+        if (QQuickItem *containerItem = containerContentItemFromBinder())
+            ref = QQmlListReference(containerItem, WINDOW_OR_ITEM_CONTENTDATA);
+    }
 
-        // Window.
-        success = createObjects(WINDOW_CONTENTDATA);
-        if (success)
-            break;
-    } while (false);
+    bool success = createObjects(ref);
+    if (!success) {
+        qWarning() << "Create entity objects failed!";
+    }
 
     entityComponent->deleteLater();
     entityComponent = nullptr;
-
-    dd->loadedPluginsList += AppStartupComponentGroup({binder()->information(), this->information()});
 }
 
 void AppStartupEntityComponent::_q_onComponentProgressChanged()
@@ -248,19 +249,18 @@ void AppStartupEntityComponent::itemGeometryChanged(QQuickItem *item, QQuickGeom
     QQuickItemChangeListener::itemGeometryChanged(item, change, oldGeometry);
 }
 
-bool AppStartupEntityComponent::createObjects(const char *propertyName)
+bool AppStartupEntityComponent::createObjects(const QQmlListReference &pros)
 {
     Q_ASSERT(entityComponent);
-    QQuickWindow *window = appWindowFromBinder();
-    if (!window)
-        return false;
-
-    QQmlListReference pros(window, propertyName);
     if (!pros.isValid())
         return false;
 
+    QQuickItem *containerItem = containerContentItemFromBinder();
+    if (!containerItem)
+        return false;
+
     copyTransitionGroupFromBinder();
-    QObject *object = entityComponent->beginCreate(creationContext(entityComponent, window));
+    QObject *object = entityComponent->beginCreate(creationContext(entityComponent, containerItem));
     setContentItem(qobject_cast<AppStartupItem *>(object));
 
     if (entityComponent->isError()) {
@@ -273,26 +273,21 @@ bool AppStartupEntityComponent::createObjects(const char *propertyName)
     if (QQmlContext *context = transitionGroupContextFromBinder())
         context->setContextProperty(QLatin1String("enterTarget"), rootItem);
 
-    rootItem->setContainWindow(window);
+    rootItem->setContainer(containerItem);
     rootItem->setEnabled(false);
     rootItem->setVisible(false);
 
     entityComponent->completeCreate();
 
-    if (dd->defaultComponentGroup.entity() == this->_information)
-        dd->defaultAppStartItem = rootItem;
-
     AppPreloadItem *preloadItem = qmlobject_cast<AppPreloadItem *>(binder()->contentItem());
-    if ((dd->defaultComponentGroup.entity() == this->_information) && preloadItem) {
+    if (preloadItem) {
         preloadItem->setStartupItem(rootItem);
     }
 
     pros.append(rootItem);
 
-    if (QQuickItem *windowContentItem = windowContentItemFromBinder()) {
-        initRootItem(windowContentItem);
-        updateRootItemSize(windowContentItem);
-    }
+    initRootItem(containerItem);
+    updateRootItemSize(containerItem);
     createChildComponents();
     return true;
 }
@@ -318,25 +313,33 @@ void AppStartupEntityComponent::createChildComponents()
     }
 }
 
+QQmlListReference AppStartupEntityComponent::findWindowDefaultDataRef()
+{
+    QQuickWindow *window = appWindowFromBinder();
+    if (!window)
+        return {};
+
+    QQmlListReference pros(window, APPLICATIONWINDOW_CONTENTDATA);
+    if (pros.isValid())
+        return pros;
+
+    pros = QQmlListReference(window, WINDOW_OR_ITEM_CONTENTDATA);
+    return pros;
+}
+
 void AppStartupEntityComponent::updateRootItemSize(QQuickItem *item)
 {
     AppStartupItem *rootItem = appRootItem();
     if (!rootItem)
         return;    
 
-    // The appRootItem always fills the window.
+    // The appRootItem always fills the container.
     QQuickItemPrivate *ip = QQuickItemPrivate::get(item);
-    QQuickWindow *window = appWindowFromBinder();
-
     if (widthValid(ip)) {
         rootItem->setWidth(item->width());
-    } else if (window) {
-        rootItem->setWidth(window->width());
     }
 
     if (heightValid(ip)) {
         rootItem->setHeight(item->height());
-    } else if (window) {
-        rootItem->setWidth(window->height());
     }
 }

@@ -28,6 +28,9 @@ public:
 
     AppStartupComponentInformation information() const;
 
+    AppStartupComponentGroup group() const;
+    void setGroup(const AppStartupComponentGroup &group);
+
     virtual AppStartupComponentInformation::StartComponent componentType() = 0;
     virtual bool load() { return false; }
 
@@ -46,12 +49,12 @@ protected:
 
     void initRootItem(QQuickItem *item);
     void deinitRootInit(QQuickItem *item);
-    void findWindowContentItem();
 
     void copyTransitionGroupFromBinder();
     QQmlContext *transitionGroupContextFromBinder() const;
+
     QQuickWindow *appWindowFromBinder() const;
-    QQuickItem *windowContentItemFromBinder();
+    QQuickItem *containerContentItemFromBinder();
 
     QVariantHash initialItemProperties(QObject *target, AppStartupInitialProperties *initialProperties);
     QVariantHash initialItemProperties(QObject *obj, const QVariantHash &properties);
@@ -64,10 +67,19 @@ protected:
 
     QPluginLoader *_loader = nullptr;
     AppStartupComponent *_binder = nullptr;
-    AppStartupComponentInformation _information;
 
-    QQuickWindow *_appWindow = nullptr;
-    QPointer<QQuickItem> _windowContentItem;
+    AppStartupComponentInformation _information;
+    AppStartupComponentGroup _group;
+
+    bool _appSurfaceIsWindow = false;
+    struct SurfacePointer {
+        QPointer<QQuickWindow> appSurfaceWindow = nullptr;
+        QPointer<QQuickItem> appSurfaceItem = nullptr;
+    } _surfacePointer;
+
+    QPointer<QQuickItem> _containerContentItem;
+
+
     QPointer<QQuickItem> _contentItem = nullptr;
 
     bool _duringTransition = false;

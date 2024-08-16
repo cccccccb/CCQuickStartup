@@ -6,8 +6,12 @@
 
 #include "ccquickstartup_global.h"
 
+QT_BEGIN_NAMESPACE
+class QQuickItem;
+QT_END_NAMESPACE
+
 class AppStartupItem;
-class CustomSubItemMetaObject;
+class AppStartupComponentGroup;
 class AppStartupItemAttachedPrivate;
 
 class CC_QUICKSTARTUP_EXPORT AppStartupItemAttached : public QQmlPropertyMap
@@ -19,8 +23,6 @@ class CC_QUICKSTARTUP_EXPORT AppStartupItemAttached : public QQmlPropertyMap
     QML_UNCREATABLE("AppStartupItemAttached Attached.")
     QML_ANONYMOUS
 
-    friend class AppQmlComponentIncubator;
-
 public:
     explicit AppStartupItemAttached(QObject *parent = nullptr);
     ~AppStartupItemAttached();
@@ -30,6 +32,10 @@ public:
 
     AppStartupItem *startupItem() const;
     void setStartupItem(AppStartupItem *item);
+
+    Q_INVOKABLE void loadComponent(const AppStartupComponentGroup &information, QQuickItem *container);
+    Q_INVOKABLE void unloadComponent(const AppStartupComponentGroup &information);
+    Q_INVOKABLE QQuickItem *componentContainer(const AppStartupComponentGroup &information) const;
 
 Q_SIGNALS:
     void loadedChanged();
