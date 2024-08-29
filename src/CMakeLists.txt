@@ -28,12 +28,12 @@ qt_add_library(CCQuickStartup
 )
 
 qt_add_qml_module(CCQuickStartup
-    URI org.orange.startup
+    URI CCStartup
     VERSION ${PROJECT_VERSION}
     QML_FILES ${EXTENSION_SOURCE_QML}
     SOURCES ${EXTENSION_SOURCE_H}
     PLUGIN_TARGET CCQuickStartupExtension
-    OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/org/orange/startup
+    OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/CCStartup
 )
 
 qt_add_resources(

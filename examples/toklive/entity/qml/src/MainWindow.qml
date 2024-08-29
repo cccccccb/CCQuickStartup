@@ -4,7 +4,7 @@ import QtQuick.Layouts
 import QtQuick.Controls.Material
 
 import org.orange.toklive
-import org.orange.startup
+import CCStartup
 
 AppStartupItem {
     id: root
@@ -15,13 +15,13 @@ AppStartupItem {
             anchors.fill: parent
             anchors.margins: showShadow ? Style.item.marginLevel1 : 0
 
-            LeftPane {
+            LeftPopup {
                 id: leftControlBar
                 height: parent.height
                 anchors.left: parent.left
             }
 
-            RightPane {
+            CenterPanel {
                 id: rightPane
                 width: parent.width - leftControlBar.width
                 height: parent.height

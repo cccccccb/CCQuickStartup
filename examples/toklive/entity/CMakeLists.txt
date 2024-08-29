@@ -23,13 +23,13 @@ target_link_libraries(TokLive-DesktopEntity PRIVATE
 # Resources:
 set(qml_resource_files
     "qml/src/LeftNavigationBar.qml"
-    "qml/src/LeftPane.qml"
+    "qml/src/LeftPopup.qml"
     "qml/src/LogoPane.qml"
     "qml/src/MainPane.qml"
     "qml/src/MainWindow.qml"
     "qml/src/PopupPane.qml"
     "qml/src/PopupSearchEdit.qml"
-    "qml/src/RightPane.qml"
+    "qml/src/CenterPanel.qml"
     "qml/src/RoundAnimateButton.qml"
     "qml/src/WindowButtonPane.qml"
 )

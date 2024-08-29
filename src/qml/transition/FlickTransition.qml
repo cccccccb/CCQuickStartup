@@ -1,6 +1,6 @@
 import QtQuick
 
-import org.orange.startup
+import CCStartup
 
 TransitionGroup {
     id: root
