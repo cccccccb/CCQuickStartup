@@ -10,7 +10,6 @@ set_target_properties(TokLive-DesktopEntity
 
 target_include_directories(TokLive-DesktopEntity PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../controls/impl
-    ${CMAKE_SOURCE_DIR}/src
 )
 
 target_link_libraries(TokLive-DesktopEntity PRIVATE

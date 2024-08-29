@@ -4,7 +4,7 @@ import QtQuick.Controls.Material
 import QtQuick.Effects
 
 import CCStartup
-import org.orange.toklive
+import CCMagicPocket
 
 AppPreloadItem {
     id: root

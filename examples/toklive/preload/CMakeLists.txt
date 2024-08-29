@@ -8,10 +8,6 @@ set_target_properties(TokLive-DesktopPreload
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/plugins
 )
 
-target_include_directories(TokLive-DesktopPreload PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-)
-
 target_link_libraries(TokLive-DesktopPreload PRIVATE
     CCQuickStartup
     # TokLiveControlExtension

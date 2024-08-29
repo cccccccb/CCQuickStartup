@@ -42,7 +42,10 @@ qt_add_resources(
     FILES ${EXTENSION_PRIVATE_SOURCE_QML}
 )
 
-target_include_directories(CCQuickStartup PRIVATE
+target_include_directories(CCQuickStartup
+    PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/items
 )
 

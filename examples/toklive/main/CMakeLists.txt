@@ -1,9 +1,6 @@
 qt_add_executable(TokLive WIN32 MACOSX_BUNDLE
     main.cpp
 )
-target_include_directories(TokLive PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-)
 
 target_compile_definitions(TokLive PRIVATE
     QT_DEPRECATED_WARNINGS
