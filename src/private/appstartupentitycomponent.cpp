@@ -68,9 +68,18 @@ void AppQmlComponentIncubator::setInitialState(QObject *o)
         QQmlContext *context = entityComponent->_itemContextMap.value(compnent);
         if (context)
             QQml_setParent_noEvent(context, o);
+
         QQml_setParent_noEvent(o, entityComponent->contentItem());
+
         if (QQuickItem *item = qmlobject_cast<QQuickItem *>(o))
             item->setParentItem(entityComponent->contentItem());
+        else {
+            QQmlProperty prop(o, PARENT_PROPERTY_NAME, context ? context : qmlContext(o));
+
+            if (prop.isValid() && prop.isWritable()) {
+                prop.write(QVariant::fromValue<QQuickItem *>(entityComponent->contentItem()));
+            }
+        }
     }
 }
 

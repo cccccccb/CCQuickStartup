@@ -77,8 +77,10 @@ TransitionGroup {
 
     enterInitialProperties: InitialProperties {
         id: enterProp
-        readonly property real scale: 0.6
         property real _private_rotationAngle: -90
+
+        readonly property real scale: 0.6
+        readonly property real opacity: 0.8
 
         readonly property QtObject transform: Rotation {
             origin.x: enterTarget.width / 2

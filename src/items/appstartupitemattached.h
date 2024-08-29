@@ -33,9 +33,9 @@ public:
     AppStartupItem *startupItem() const;
     void setStartupItem(AppStartupItem *item);
 
-    Q_INVOKABLE void loadComponent(const AppStartupComponentGroup &information, QQuickItem *container);
-    Q_INVOKABLE void unloadComponent(const AppStartupComponentGroup &information);
-    Q_INVOKABLE QQuickItem *componentContainer(const AppStartupComponentGroup &information) const;
+    Q_INVOKABLE void loadComponent(const AppStartupComponentGroup &component, QQuickItem *container);
+    Q_INVOKABLE void unloadComponent(const AppStartupComponentGroup &component);
+    Q_INVOKABLE QQuickItem *componentContainer(const AppStartupComponentGroup &component) const;
 
 Q_SIGNALS:
     void loadedChanged();

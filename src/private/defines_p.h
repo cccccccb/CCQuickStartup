@@ -5,6 +5,7 @@
 
 #define APPLICATIONWINDOW_CONTENTDATA "contentData"
 #define WINDOW_OR_ITEM_CONTENTDATA "data"
+#define PARENT_PROPERTY_NAME "parent"
 
 static inline bool heightValid(QQuickItemPrivate *item)
 {
