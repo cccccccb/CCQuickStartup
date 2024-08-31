@@ -14,7 +14,7 @@ TokLiveEntity::~TokLiveEntity()
 
 }
 
-QUrl TokLiveEntity::entityComponentPath() const
+QUrl TokLiveEntity::entityModulePath() const
 {
     return QUrl("qrc:///src/MainWindow.qml");
 }

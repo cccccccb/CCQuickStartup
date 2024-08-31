@@ -17,7 +17,7 @@ public:
     AppStartupPreloadInterface() = default;
     virtual ~AppStartupPreloadInterface() = default;
 
-    virtual QUrl preloadComponentPath() const = 0;
+    virtual QUrl preloadModulePath() const = 0;
 
     virtual void aboutToPreload(QQmlApplicationEngine *engine);
     virtual void preloadCreated(QQmlApplicationEngine *engine);

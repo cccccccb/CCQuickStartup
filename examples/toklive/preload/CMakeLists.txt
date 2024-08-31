@@ -5,7 +5,7 @@ qt_add_plugin(TokLive-DesktopPreload
 
 set_target_properties(TokLive-DesktopPreload
     PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/plugins
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/modules
 )
 
 target_link_libraries(TokLive-DesktopPreload PRIVATE

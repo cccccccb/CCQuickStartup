@@ -1,8 +1,8 @@
 #include "appstartupinstance_p.h"
 
 #include "appstartupapplicationfactory.h"
-#include "appstartupentitycomponent.h"
-#include "appstartuppreloadcomponent.h"
+#include "appstartupentitymodule.h"
+#include "appstartuppreloadmodule.h"
 
 #include "interface/appstartuppreloadinterface.h"
 #include "interface/appstartupentityinterface.h"
@@ -14,21 +14,21 @@
 #include <QQmlApplicationEngine>
 #include <QQuickWindow>
 
-class AppStartupComponentFactory
+class AppStartupModuleFactory
 {
 public:
-    AppStartupComponentFactory(AppStartupInstancePrivate *dd)
+    AppStartupModuleFactory(AppStartupInstancePrivate *dd)
         : dd(dd)
     {
 
     }
 
-    inline AppStartupComponent *create(const AppStartupComponentInformation &plugin)
+    inline AppStartupModule *create(const AppStartupModuleInformation &module)
     {
-        if (plugin.startComponent() == AppStartupComponentInformation::Preload) {
-            return new AppStartupPreloadComponent(plugin, dd);
-        } else if (plugin.startComponent() == AppStartupComponentInformation::Entity) {
-            return new AppStartupEntityComponent(plugin, dd);
+        if (module.startModule() == AppStartupModuleInformation::Preload) {
+            return new AppStartupPreloadModule(module, dd);
+        } else if (module.startModule() == AppStartupModuleInformation::Entity) {
+            return new AppStartupEntityModule(module, dd);
         }
 
         return nullptr;
@@ -41,7 +41,7 @@ private:
 AppStartupInstancePrivate::AppStartupInstancePrivate(AppStartupInstance *qq)
     : qq(qq)
     , engine (nullptr)
-    , componentFactory(new AppStartupComponentFactory(this))
+    , moduleFactory(new AppStartupModuleFactory(this))
 {
     AppStartupInstance::self = qq;
 }
@@ -51,106 +51,100 @@ AppStartupInstancePrivate::~AppStartupInstancePrivate()
 
 }
 
-void AppStartupInstancePrivate::scanPlugins()
+void AppStartupInstancePrivate::scanModules()
 {
-    QList<AppStartupComponentInformation> plugins;
+    QList<AppStartupModuleInformation> modules;
 
-    // scan the dynamic plugins
-    plugins += scanDynamicPlugins();
-    // scan the static plugins
-    plugins += scanStaticPlugins();
+    // scan the dynamic modules
+    modules += scanDynamicModules();
+    // scan the static modules
+    modules += scanStaticModules();
 
-    std::sort(plugins.begin(), plugins.end(),
-              [](const AppStartupComponentInformation &before, const AppStartupComponentInformation &after) {
-        return before.startComponent() < after.startComponent()
+    std::sort(modules.begin(), modules.end(),
+              [](const AppStartupModuleInformation &before, const AppStartupModuleInformation &after) {
+        return before.startModule() < after.startModule()
                || before.descriptor() < after.descriptor()
                || before.version() < after.version();
     });
 
-    detachAvailablePluginsChange(plugins);
+    detachAvailableModulesChange(modules);
 }
 
-QList<AppStartupComponentInformation> AppStartupInstancePrivate::scanDynamicPlugins()
+QList<AppStartupModuleInformation> AppStartupInstancePrivate::scanDynamicModules()
 {
-    QList<AppStartupComponentInformation> plugins;
+    QList<AppStartupModuleInformation> modules;
 
-    for (auto iter = pluginPaths.rbegin(); iter != pluginPaths.rend(); ++iter) {
+    for (auto iter = modulePaths.rbegin(); iter != modulePaths.rend(); ++iter) {
         const QDir dir(*iter);
         if (!dir.exists())
             continue;
 
         for (const auto &entry : dir.entryInfoList(QDir::Files | QDir::NoSymLinks)) {
             const auto path = entry.absoluteFilePath();
-            if (!QLibrary::isLibrary(path))
-                continue;
-
-            QPluginLoader loader(path);
-            const QJsonObject &metaData = loader.metaData();
-
-            AppStartupComponentInformation info;
-            if (!resolveMetaInfoFromObject(metaData, &info))
+            AppStartupModuleInformation info;
+            if (!resolveInformation(path, &info))
                 continue;
 
             info.setPath(path);
-            qInfo("Find the available plugin %s:%s from the plugin path: %s", qPrintable(info.descriptor()),
+            qInfo("Find the available module %s:%s from the module path: %s", qPrintable(info.descriptor()),
                   qPrintable(info.version()), qPrintable(path));
 
-            plugins << info;
+            modules << info;
         }
     }
 
-    return plugins;
+    return modules;
 }
 
-QList<AppStartupComponentInformation> AppStartupInstancePrivate::scanStaticPlugins()
+QList<AppStartupModuleInformation> AppStartupInstancePrivate::scanStaticModules()
 {
-    QList<AppStartupComponentInformation> plugins;
+    QList<AppStartupModuleInformation> modules;
 
-    auto static_plugins = QPluginLoader::staticPlugins();
-    for (auto splg : std::as_const(static_plugins)) {
+    auto staticModules = QPluginLoader::staticPlugins();
+    for (auto splg : std::as_const(staticModules)) {
 
         const auto &metaData = splg.metaData();
-        AppStartupComponentInformation info;
-        if (!resolveMetaInfoFromObject(metaData, &info))
+        AppStartupModuleInformation info;
+        if (!resolveInformation(metaData, &info))
             continue;
 
-        qInfo("Find the available plugin %s:%s from the static plugins", qPrintable(info.descriptor()),
+        qInfo("Find the available module %s:%s from the static modules", qPrintable(info.descriptor()),
               qPrintable(info.version()));
 
-        plugins << info;
+        modules << info;
     }
 
-    return plugins;
+    return modules;
 }
 
-void AppStartupInstancePrivate::detachAvailablePluginsChange(const QList<AppStartupComponentInformation> &plugins)
+void AppStartupInstancePrivate::detachAvailableModulesChange(const QList<AppStartupModuleInformation> &modules)
 {
-    QList<AppStartupComponentGroup> groupList;
+    QList<AppStartupModuleGroup> groupList;
     bool availableChanged = false;
 
     int left = 0;
     int rightLimit = -1;
-    while (left < plugins.size() - 1) {
-        if ((left > 0 && (plugins[left].startComponent() != plugins[left - 1].startComponent())))
+    while (left < modules.size() - 1) {
+        if ((left > 0 && (modules[left].startModule() != modules[left - 1].startModule())))
             break;
 
-        if (plugins[left].startComponent() == plugins[left + 1].startComponent()
-            && plugins[left].descriptor() == plugins[left + 1].descriptor()) {
+        if (modules[left].startModule() == modules[left + 1].startModule()
+            && modules[left].descriptor() == modules[left + 1].descriptor()) {
             left++;
             continue;
         }
 
-        int right = plugins.size() - 1;
+        int right = modules.size() - 1;
         while ((rightLimit >= 0 ? (right < rightLimit)
-                                : (plugins[right].startComponent() != plugins[left].startComponent()))
-               && plugins[right].descriptor() != plugins[left].descriptor()) {
+                                : (modules[right].startModule() != modules[left].startModule()))
+               && modules[right].descriptor() != modules[left].descriptor()) {
             right--;
         }
 
-        const QString &desciptor = plugins[right].descriptor();
-        if (desciptor == plugins[left].descriptor()) {
-            AppStartupComponentGroup group({plugins[left], plugins[right]});
-            if (!availableChanged && !availablePlugins.contains(group)) {
+        const QString &desciptor = modules[right].descriptor();
+        if (desciptor == modules[left].descriptor()) {
+            AppStartupModuleGroup group({modules[left], modules[right]});
+            if (!availableChanged && !availableModules.contains(group)) {
                 availableChanged = true;
             }
 
@@ -161,107 +155,108 @@ void AppStartupInstancePrivate::detachAvailablePluginsChange(const QList<AppStar
         left++;
     }
 
-    if (availableChanged || groupList.size() != availablePlugins.size()) {
-        availablePlugins = groupList;
-        Q_EMIT qq->availablePluginsChanged();
+    if (availableChanged || groupList.size() != availableModules.size()) {
+        availableModules = groupList;
+        Q_EMIT qq->availableModulesChanged();
     }
 }
 
-bool AppStartupInstancePrivate::reloadAllPlugins()
+bool AppStartupInstancePrivate::reloadAllModules()
 {
-    reloadPluginsList += loadedPluginsList;
+    reloadModulesList += loadedModulesList;
 
-    unloadAllPlugins();
-    findDefaultComponentGroup();
-    if (!this->defaultComponentGroup.isValid())
+    unloadAllModules();
+    findDefaultModuleGroup();
+    if (!this->defaultModuleGroup.isValid())
         return false;
 
-    reloadPluginsList.removeOne(defaultComponentGroup);
-    return loadPreloadPlugins(defaultComponentGroup);
+    reloadModulesList.removeOne(defaultModuleGroup);
+    return loadPreloadModules(defaultModuleGroup);
 }
 
-void AppStartupInstancePrivate::unloadAllPlugins()
+void AppStartupInstancePrivate::unloadAllModules()
 {
-    defaultComponentGroup = {};
+    defaultModuleGroup = {};
 
     if (engine)
         engine->clearComponentCache();
 
-    // unload the exist plugins
-    auto it = componentPluginHash.begin();
-    while (it != componentPluginHash.end()) {
-        it = componentPluginHash.erase(it);
+    // unload the exist modules
+    auto it = componentModuleHash.begin();
+    while (it != componentModuleHash.end()) {
+        it = componentModuleHash.erase(it);
     }
 
-    loadedPluginsList.clear();
+    loadedModulesList.clear();
 }
 
-void AppStartupInstancePrivate::unloadPlugin(const AppStartupComponentGroup &plugin)
+void AppStartupInstancePrivate::unloadModule(const AppStartupModuleGroup &module)
 {
-    // unload the exist plugins
-    auto it = componentPluginHash.begin();
-    while (it != componentPluginHash.end()) {
-        if (it.key() == plugin.preload() || it.key() == plugin.entity()) {
-            it = componentPluginHash.erase(it);
+    // unload the exist modules
+    auto it = componentModuleHash.begin();
+    while (it != componentModuleHash.end()) {
+        if (it.key() == module.preload() || it.key() == module.entity()) {
+            it = componentModuleHash.erase(it);
         }
     }
 
-    loadedPluginsList.removeOne(plugin);
+    loadedModulesList.removeOne(module);
+    Q_EMIT qq->unloaded(module);
 }
 
-void AppStartupInstancePrivate::findDefaultComponentGroup()
+void AppStartupInstancePrivate::findDefaultModuleGroup()
 {
-    AppStartupComponentGroup componentGroup;
-    for (const auto &group : reloadPluginsList) {
+    AppStartupModuleGroup moduleGroup;
+    for (const auto &group : reloadModulesList) {
         if (!group.isValid() || !group.preload().isDefault() || !group.entity().isDefault())
             continue;
 
-        if (componentGroup.entity().version() < group.entity().version())
-            componentGroup = group;
+        if (moduleGroup.entity().version() < group.entity().version())
+            moduleGroup = group;
     }
 
-    if (componentGroup.isValid())
-        this->defaultComponentGroup = componentGroup;
+    if (moduleGroup.isValid())
+        this->defaultModuleGroup = moduleGroup;
 }
 
-void AppStartupInstancePrivate::loadEntityPlugins(const AppStartupComponentGroup &plugin)
+void AppStartupInstancePrivate::loadEntityModules(const AppStartupModuleGroup &moduleGroup)
 {
-    AppStartupComponent *component = componentFactory->create(plugin.entity());
-    if (!component)
+    AppStartupModule *module = moduleFactory->create(moduleGroup.entity());
+    if (!module)
         return;
 
-    auto preloadComponent = this->componentPluginHash.value(plugin.preload());
-    if (preloadComponent) {
-        component->setBinder(preloadComponent.get());
-        preloadComponent->setBinder(component);
+    auto preloadModule = this->componentModuleHash.value(moduleGroup.preload());
+    if (preloadModule) {
+        module->setBinder(preloadModule.get());
+        preloadModule->setBinder(module);
     }
 
-    component->setGroup(plugin);
-    this->componentPluginHash.insert(plugin.entity(), QSharedPointer<AppStartupComponent>(component));
-    component->load();
+    module->setGroup(moduleGroup);
+    this->componentModuleHash.insert(moduleGroup.entity(), QSharedPointer<AppStartupModule>(module));
+    module->load();
 }
 
-bool AppStartupInstancePrivate::loadPreloadPlugins(const AppStartupComponentGroup &plugin)
+bool AppStartupInstancePrivate::loadPreloadModules(const AppStartupModuleGroup &moduleGroup)
 {
-    if (!plugin.isValid()) {
+    if (!moduleGroup.isValid()) {
         //! @todo add error
-        qFatal("No preload plugin found when load the exist plugins!");
+        qFatal("No preload module found when load the exist modules!");
         return false;
     }
 
-    AppStartupComponent *component = componentFactory->create(plugin.preload());
-    if (!component) {
+    AppStartupModule *module = moduleFactory->create(moduleGroup.preload());
+    if (!module) {
         //! @todo add error
-        qFatal("Create preload component failed!");
+        qFatal("Create preload module failed!");
         return false;
     }
 
-    component->setGroup(plugin);
-    this->componentPluginHash.insert(plugin.preload(), QSharedPointer<AppStartupComponent>(component));
-    return component->load();
+    module->setGroup(moduleGroup);
+    this->componentModuleHash.insert(moduleGroup.preload(), QSharedPointer<AppStartupModule>(module));
+    return module->load();
 }
 
-bool AppStartupInstancePrivate::resolveMetaInfoFromObject(const QJsonObject &obj, AppStartupComponentInformation *info)
+bool AppStartupInstancePrivate::resolveInformation(const QJsonObject &obj, AppStartupModuleInformation *info)
 {
     if (!info)
         return false;
@@ -276,14 +271,14 @@ bool AppStartupInstancePrivate::resolveMetaInfoFromObject(const QJsonObject &obj
         return false;
 
     auto metaDataObject = metaDataValue.toObject();
-    auto pluginAppId = metaDataObject.value("appid").toString();
-    if (pluginAppId != this->appId)
+    auto moduleAppId = metaDataObject.value("appid").toString();
+    if (moduleAppId != AppStartupInstance::instance()->appId())
         return false;
 
-    info->setStartComponent(iid == qobject_interface_iid<AppStartupPreloadInterface *>()
-                                ? AppStartupComponentInformation::Preload
-                                : AppStartupComponentInformation::Entity);
-    info->setAppId(pluginAppId);
+    info->setStartModule(iid == qobject_interface_iid<AppStartupPreloadInterface *>()
+                                ? AppStartupModuleInformation::Preload
+                                : AppStartupModuleInformation::Entity);
+    info->setAppId(moduleAppId);
     info->setDescriptor(metaDataObject.value("descriptor").toString());
     info->setVersion(metaDataObject.value("version").toString());
     info->setDescription(metaDataObject.value("description").toString());
@@ -323,16 +318,33 @@ void AppStartupInstancePrivate::createEngine()
         this->engine.reset(new QQmlApplicationEngine(qq));
 }
 
-QStringList AppStartupInstancePrivate::buildinPluginPaths()
+QStringList AppStartupInstancePrivate::buildinModulePaths()
 {
     QStringList result;
-    const auto ccPluginPath = qgetenv("CC_QML_PLUGIN_PATH");
-    if (!ccPluginPath.isEmpty())
-        result.append(ccPluginPath);
+    const auto ccModulePath = qgetenv("CC_QML_APP_MODULE_PATH");
+    if (!ccModulePath.isEmpty())
+        result.append(ccModulePath);
 
-#ifdef CC_QML_APP_PLUGIN_PATH
-    result.append(CC_QML_PLUGIN_PATH);
+#ifdef CC_QML_APP_MODULE_PATH
+    result.append(CC_QML_APP_MODULE_PATH);
 #endif
 
     return result;
+}
+
+bool AppStartupInstancePrivate::resolveInformation(const QString &path, AppStartupModuleInformation *out)
+{
+    if (!QLibrary::isLibrary(path))
+        return false;
+
+    if (!out)
+        return false;
+
+    QPluginLoader loader(path);
+    const QJsonObject &metaData = loader.metaData();
+
+    if (!resolveInformation(metaData, out))
+        return false;
+
+    return true;
 }

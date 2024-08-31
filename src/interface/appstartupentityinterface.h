@@ -16,7 +16,7 @@ public:
     AppStartupEntityInterface() = default;
     virtual ~AppStartupEntityInterface() = default;
 
-    virtual QUrl entityComponentPath() const = 0;
+    virtual QUrl entityModulePath() const = 0;
     virtual void initialize(QQmlApplicationEngine *engine);
     virtual void finishedLoading(QQmlApplicationEngine *engine);
 };

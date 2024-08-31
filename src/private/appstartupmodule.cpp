@@ -1,7 +1,7 @@
+#include "appstartupmodule.h"
 #include "appstartupcomponent.h"
 #include "appstartupinstance_p.h"
 #include "appstartuptransitionmanager.h"
-#include "defines_p.h"
 
 #include "items/appstartupitem.h"
 #include "items/appstartupinitialproperties.h"
@@ -12,16 +12,16 @@
 
 static const QQuickItemPrivate::ChangeTypes changedTypes = QQuickItemPrivate::Geometry;
 
-AppStartupComponent::AppStartupComponent(const AppStartupComponentInformation &plugin, AppStartupInstancePrivate *dd)
+AppStartupModule::AppStartupModule(const AppStartupModuleInformation &module, AppStartupInstancePrivate *dd)
     : qq(dd->qq)
     , dd(dd)
-    , _information(plugin)
+    , _information(module)
     , _duringTransition(false)
 {
 
 }
 
-AppStartupComponent::~AppStartupComponent()
+AppStartupModule::~AppStartupModule()
 {
     qDeleteAll(_itemContextMap);
     _itemContextMap.clear();
@@ -37,7 +37,7 @@ AppStartupComponent::~AppStartupComponent()
     if (_containerContentItem) {
         deinitRootInit(_containerContentItem);
 
-        if (AppStartupComponent *binder = this->binder())
+        if (AppStartupModule *binder = this->binder())
             binder->deinitRootInit(_containerContentItem);
 
         _containerContentItem.clear();
@@ -50,10 +50,10 @@ AppStartupComponent::~AppStartupComponent()
         _surfacePointer.appSurfaceWindow = nullptr;
     }
 
-    unloadPlugin();
+    unloadModule();
 }
 
-QQmlContext *AppStartupComponent::creationContext(QQmlComponent *component, QObject *obj)
+QQmlContext *AppStartupModule::creationContext(QQmlComponent *component, QObject *obj)
 {
     QQmlContext *creationContext = component->creationContext();
     if (!creationContext)
@@ -64,7 +64,7 @@ QQmlContext *AppStartupComponent::creationContext(QQmlComponent *component, QObj
     return context;
 }
 
-void AppStartupComponent::setBinder(AppStartupComponent *binder)
+void AppStartupModule::setBinder(AppStartupModule *binder)
 {
     if (_binder == binder)
         return;
@@ -72,17 +72,17 @@ void AppStartupComponent::setBinder(AppStartupComponent *binder)
     _binder = binder;
 }
 
-AppStartupComponent *AppStartupComponent::binder() const
+AppStartupModule *AppStartupModule::binder() const
 {
     return _binder;
 }
 
-QPointer<QQuickItem> AppStartupComponent::contentItem() const
+QPointer<QQuickItem> AppStartupModule::contentItem() const
 {
     return _contentItem;
 }
 
-void AppStartupComponent::setContentItem(QQuickItem *item)
+void AppStartupModule::setContentItem(QQuickItem *item)
 {
     if (_contentItem == item)
         return;
@@ -90,39 +90,39 @@ void AppStartupComponent::setContentItem(QQuickItem *item)
     _contentItem = item;
 }
 
-AppStartupComponentInformation AppStartupComponent::information() const
+AppStartupModuleInformation AppStartupModule::information() const
 {
     return _information;
 }
 
-AppStartupComponentGroup AppStartupComponent::group() const
+AppStartupModuleGroup AppStartupModule::group() const
 {
     return _group;
 }
 
-void AppStartupComponent::setGroup(const AppStartupComponentGroup &group)
+void AppStartupModule::setGroup(const AppStartupModuleGroup &group)
 {
     _group = group;
 }
 
-void AppStartupComponent::initRootItem(QQuickItem *item)
+void AppStartupModule::initRootItem(QQuickItem *item)
 {
     QQuickItemPrivate *wp = QQuickItemPrivate::get(item);
     wp->addItemChangeListener(this, changedTypes);
 }
 
-void AppStartupComponent::deinitRootInit(QQuickItem *item)
+void AppStartupModule::deinitRootInit(QQuickItem *item)
 {
     QQuickItemPrivate *wp = QQuickItemPrivate::get(item);
     wp->removeItemChangeListener(this, changedTypes);
 }
 
-void AppStartupComponent::copyTransitionGroupFromBinder()
+void AppStartupModule::copyTransitionGroupFromBinder()
 {
     _transitionGroup = binder() ? binder()->_transitionGroup : nullptr;
 }
 
-QQmlContext *AppStartupComponent::transitionGroupContextFromBinder() const
+QQmlContext *AppStartupModule::transitionGroupContextFromBinder() const
 {
     if (!binder())
         return nullptr;
@@ -142,7 +142,7 @@ QQmlContext *AppStartupComponent::transitionGroupContextFromBinder() const
     return _itemContextMap.value(tgComponent);
 }
 
-QQuickWindow *AppStartupComponent::appWindowFromBinder() const
+QQuickWindow *AppStartupModule::appWindowFromBinder() const
 {
     if (!binder())
         return nullptr;
@@ -157,7 +157,7 @@ QQuickWindow *AppStartupComponent::appWindowFromBinder() const
     return window;
 }
 
-QQuickItem *AppStartupComponent::containerContentItemFromBinder()
+QQuickItem *AppStartupModule::containerContentItemFromBinder()
 {
     if (!binder())
         return nullptr;
@@ -169,7 +169,7 @@ QQuickItem *AppStartupComponent::containerContentItemFromBinder()
     return contentItem;
 }
 
-QVariantHash AppStartupComponent::initialItemProperties(QObject *target, AppStartupInitialProperties *initialProperties)
+QVariantHash AppStartupModule::initialItemProperties(QObject *target, AppStartupInitialProperties *initialProperties)
 {
     if (!initialProperties)
         return {};
@@ -190,7 +190,7 @@ QVariantHash AppStartupComponent::initialItemProperties(QObject *target, AppStar
     return prevPropertiesHash;
 }
 
-QVariantHash AppStartupComponent::initialItemProperties(QObject *obj, const QVariantHash &properties)
+QVariantHash AppStartupModule::initialItemProperties(QObject *obj, const QVariantHash &properties)
 {
     QVariantHash prevPropertiesHash;
     QVariantHash applyPropertiesHash = properties;
@@ -228,7 +228,7 @@ QVariantHash AppStartupComponent::initialItemProperties(QObject *obj, const QVar
     return prevPropertiesHash;
 }
 
-QObject *AppStartupComponent::loadPlugin(const QString &path)
+QObject *AppStartupModule::loadModule(const QString &path)
 {
     if (!_loader)
         _loader = new QPluginLoader(path, this);
@@ -242,7 +242,7 @@ QObject *AppStartupComponent::loadPlugin(const QString &path)
     return nullptr;
 }
 
-bool AppStartupComponent::unloadPlugin()
+bool AppStartupModule::unloadModule()
 {
     if (!_loader)
         return true;
@@ -251,16 +251,16 @@ bool AppStartupComponent::unloadPlugin()
         return true;
 
     bool unloaded = _loader->unload();
-    qInfo() << "Unload the plugin: " << dd->appId << ", from path: "
+    qInfo() << "Unload the module: " << dd->appId << ", from path: "
             << _loader->fileName() << ", success: " << unloaded;
     return unloaded;
 }
 
-void AppStartupComponent::transitionFinishedImpl()
+void AppStartupModule::transitionFinishedImpl()
 {
     transitionFinish();
 
-    if (AppStartupComponent *linkTo = transitionLinkNext())
+    if (AppStartupModule *linkTo = transitionLinkNext())
         linkTo->startTransition(TrasitionBeginMode::BeginCurrent);
 
     if (_transitionManager) {
@@ -271,18 +271,18 @@ void AppStartupComponent::transitionFinishedImpl()
     _duringTransition = false;
 }
 
-bool AppStartupComponent::startTransition(TrasitionBeginMode mode)
+bool AppStartupModule::startTransition(TrasitionBeginMode mode)
 {
     _duringTransition = true;
-    AppStartupComponent *headComponent = this;
+    AppStartupModule *headModule = this;
 
     if (mode == TrasitionBeginMode::BeginHead) {
-        while (headComponent->transitionLinkPrev()) {
-            headComponent = headComponent->transitionLinkPrev();
+        while (headModule->transitionLinkPrev()) {
+            headModule = headModule->transitionLinkPrev();
         }
 
-        if (headComponent != this) {
-            return headComponent->startTransition(TrasitionBeginMode::BeginCurrent);
+        if (headModule != this) {
+            return headModule->startTransition(TrasitionBeginMode::BeginCurrent);
         }
     }
 
@@ -294,7 +294,7 @@ bool AppStartupComponent::startTransition(TrasitionBeginMode mode)
     }
 
     _transitionManager = new AppStartUpTransitionManager(nullptr);
-    _transitionManager->setFinishedCallback(std::bind(&AppStartupComponent::transitionFinishedImpl, this));
+    _transitionManager->setFinishedCallback(std::bind(&AppStartupModule::transitionFinishedImpl, this));
     beforeTransition();
     _transitionManager->transition({}, transition, transitionItem);
     return true;

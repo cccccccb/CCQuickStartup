@@ -1,3 +1,4 @@
+#include "appstartupinterface.h"
 #include "appstartupitem.h"
 #include "appstartupitemattached.h"
 
@@ -40,12 +41,14 @@ public:
     const QString &propertyName(int index) const;
 
     AppStartupItem *_qq;
-    QList<QQmlComponent *> _childrenComponents;
     QQuickItem *_container = nullptr;
     bool _loaded = false;
     bool _asynchronous = false;
     qreal _progress = 0.0;
     bool _populate = false;
+    QVector<QObject *> _objects;
+    QVector<AppStartupInterface *> _interfaces;
+
     QPointer<AppStartupItemAttached> _attached;
 
     QStringList keys;
@@ -148,6 +151,16 @@ void AppStartupItem::setPopulate(bool populate)
         return;
     dd->_populate = populate;
     Q_EMIT populateChanged();
+}
+
+QQmlListProperty<QObject> AppStartupItem::objects()
+{
+    return {this, &dd->_objects};
+}
+
+QQmlListProperty<AppStartupInterface> AppStartupItem::interfaces()
+{
+    return {this, &dd->_interfaces};
 }
 
 AppStartupItemAttached *AppStartupItem::qmlAttachedProperties(QObject *object)

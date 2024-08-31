@@ -17,7 +17,7 @@ public:
     explicit TokLiveEntity(QObject *parent = nullptr);
     ~TokLiveEntity();
 
-    QUrl entityComponentPath() const;
+    QUrl entityModulePath() const;
     void initialize(QQmlApplicationEngine *engine);
 };
 

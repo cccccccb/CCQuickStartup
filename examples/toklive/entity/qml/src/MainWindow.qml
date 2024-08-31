@@ -9,7 +9,7 @@ import CCStartup
 AppStartupItem {
     id: root
 
-    Component {
+    AppStartupComponent {
         MainPane {
             id: mainPane
             anchors.fill: parent

@@ -5,7 +5,7 @@ qt_add_plugin(TokLive-DesktopEntity
 
 set_target_properties(TokLive-DesktopEntity
     PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/plugins
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/modules
 )
 
 target_include_directories(TokLive-DesktopEntity PRIVATE

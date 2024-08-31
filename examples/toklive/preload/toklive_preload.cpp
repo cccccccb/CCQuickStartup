@@ -13,13 +13,13 @@
 
 static QStringList buildinPluginPaths()
 {
-    QStringList result = { QLibraryInfo::path(QLibraryInfo::DataPath) + "/plugins" };
-    const auto ccPluginPath = qgetenv("TOKLIVE_QML_PLUGIN_PATH");
+    QStringList result = { QLibraryInfo::path(QLibraryInfo::DataPath) + "/modules" };
+    const auto ccPluginPath = qgetenv("TOKLIVE_QML_MODULE_PATH");
     if (!ccPluginPath.isEmpty())
         result.append(ccPluginPath);
 
-#ifdef TOKLIVE_QML_PLUGIN_PATH
-    result.append(TOKLIVE_QML_PLUGIN_PATH);
+#ifdef TOKLIVE_QML_MODULE_PATH
+    result.append(TOKLIVE_QML_MODULE_PATH);
 #endif
 
     return result;
@@ -50,7 +50,7 @@ void TokLivePreload::aboutToPreload(QQmlApplicationEngine *engine)
     }
 }
 
-QUrl TokLivePreload::preloadComponentPath() const
+QUrl TokLivePreload::preloadModulePath() const
 {
     return QUrl("qrc:///qml/PreloadWindow.qml");
 }

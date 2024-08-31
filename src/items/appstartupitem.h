@@ -1,7 +1,8 @@
-#ifndef DQUICKAppStartupITEM_H
-#define DQUICKAppStartupITEM_H
+#ifndef APPSTARTUPITEM_H
+#define APPSTARTUPITEM_H
 
 #include <QQuickItem>
+#include <QQmlListProperty>
 
 #include "ccquickstartup_global.h"
 
@@ -10,6 +11,7 @@ class QQmlComponent;
 class QQuickItem;
 QT_END_NAMESPACE
 
+class AppStartupInterface;
 class AppStartupItemPrivate;
 class AppStartupItemAttached;
 
@@ -21,7 +23,10 @@ class CC_QUICKSTARTUP_EXPORT AppStartupItem : public QQuickItem
     Q_PROPERTY(bool populate READ populate NOTIFY populateChanged)
     Q_PROPERTY(qreal progress READ progress NOTIFY progressChanged)
     Q_PROPERTY(bool asynchronous READ asynchronous WRITE setAsynchronous NOTIFY asynchronousChanged)
+    Q_PROPERTY(QQmlListProperty<QObject> objects READ objects CONSTANT FINAL)
+    Q_PROPERTY(QQmlListProperty<AppStartupInterface> interfaces READ interfaces CONSTANT FINAL)
 
+    Q_CLASSINFO("DefaultProperty", "objects")
     QML_NAMED_ELEMENT(AppStartupItem)
     QML_ATTACHED(AppStartupItemAttached)
 
@@ -44,6 +49,9 @@ public:
     bool populate() const;
     void setPopulate(bool populate);
 
+    QQmlListProperty<QObject> objects();
+    QQmlListProperty<AppStartupInterface> interfaces();
+
     static AppStartupItemAttached *qmlAttachedProperties(QObject *object);
 
 Q_SIGNALS:
@@ -55,8 +63,7 @@ Q_SIGNALS:
 
 private:
     QScopedPointer<AppStartupItemPrivate> dd;
-    bool m_populate;
 };
 
 QML_DECLARE_TYPEINFO(AppStartupItem, QML_HAS_ATTACHED_PROPERTIES)
-#endif  // DQUICKAppStartupITEM_H
+#endif  // APPSTARTUPITEM_H

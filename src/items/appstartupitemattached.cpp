@@ -1,7 +1,5 @@
 #include "appstartupitemattached.h"
 #include "appstartupitem.h"
-#include "appstartupcomponentinformation.h"
-#include "appstartupinstance.h"
 
 class AppStartupItemAttachedPrivate {
 public:
@@ -13,7 +11,6 @@ public:
     bool _loaded = false;
     AppStartupItem *_startupItem = nullptr;
     QMap<QByteArray, QObject *> _objects;
-    QHash<AppStartupComponentGroup, QPointer<QQuickItem>> _componentHash;
 };
 
 AppStartupItemAttached::AppStartupItemAttached(QObject *parent)
@@ -53,27 +50,6 @@ void AppStartupItemAttached::setStartupItem(AppStartupItem *item)
 
     dd->_startupItem = item;
     Q_EMIT startupItemChanged();
-}
-
-void AppStartupItemAttached::loadComponent(const AppStartupComponentGroup &component, QQuickItem *container)
-{
-    if (dd->_componentHash.contains(component)) {
-        unloadComponent(component);
-    }
-
-    dd->_componentHash.insert(component, container);
-    AppStartupInstance::instance()->load(component);
-}
-
-void AppStartupItemAttached::unloadComponent(const AppStartupComponentGroup &component)
-{
-    AppStartupInstance::instance()->unload(component);
-    dd->_componentHash.remove(component);
-}
-
-QQuickItem *AppStartupItemAttached::componentContainer(const AppStartupComponentGroup &component) const
-{
-    return dd->_componentHash.value(component);
 }
 
 #include "moc_appstartupitemattached.cpp"

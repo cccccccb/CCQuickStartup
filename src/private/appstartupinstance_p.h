@@ -7,36 +7,37 @@ class QQmlApplicationEngine;
 class QQuickItem;
 
 class AppStartupItem;
-class AppStartupComponent;
-class AppStartupComponentFactory;
+class AppStartupModule;
+class AppStartupModuleFactory;
 
 class AppStartupInstancePrivate
 {
     friend class AppQmlComponentIncubator;
-    friend class AppStartupComponent;
+    friend class AppStartupModule;
 public:
     AppStartupInstancePrivate(AppStartupInstance *qq);
     ~AppStartupInstancePrivate();
 
-    void scanPlugins();
-    QList<AppStartupComponentInformation> scanDynamicPlugins();
-    QList<AppStartupComponentInformation> scanStaticPlugins();
-    void detachAvailablePluginsChange(const QList<AppStartupComponentInformation> &plugins);
+    void scanModules();
+    QList<AppStartupModuleInformation> scanDynamicModules();
+    QList<AppStartupModuleInformation> scanStaticModules();
+    void detachAvailableModulesChange(const QList<AppStartupModuleInformation> &modules);
 
-    bool reloadAllPlugins();
-    void unloadAllPlugins();
-    void unloadPlugin(const AppStartupComponentGroup &plugin);
+    bool reloadAllModules();
+    void unloadAllModules();
+    void unloadModule(const AppStartupModuleGroup &module);
 
-    void findDefaultComponentGroup();
-    bool loadPreloadPlugins(const AppStartupComponentGroup &plugin);
-    void loadEntityPlugins(const AppStartupComponentGroup &plugin);
-    bool resolveMetaInfoFromObject(const QJsonObject &obj, AppStartupComponentInformation *info);
+    void findDefaultModuleGroup();
+    bool loadPreloadModules(const AppStartupModuleGroup &module);
+    void loadEntityModules(const AppStartupModuleGroup &module);
     void processCommandLineArguments();
 
     void createApplication(int &argc, char **argv);
     void createEngine();
 
-    static QStringList buildinPluginPaths();
+    static QStringList buildinModulePaths();
+    static bool resolveInformation(const QJsonObject &obj, AppStartupModuleInformation *info);
+    static bool resolveInformation(const QString &path, AppStartupModuleInformation *out);
 
     AppStartupInstance *qq = nullptr;
     QScopedPointer<QGuiApplication> app;
@@ -45,16 +46,16 @@ public:
     QString appId;
 
     AppStartupApplicationFactory *applicationFactory = nullptr;
-    QScopedPointer<AppStartupComponentFactory> componentFactory;
-    AppStartupComponentGroup defaultComponentGroup;
+    QScopedPointer<AppStartupModuleFactory> moduleFactory;
+    AppStartupModuleGroup defaultModuleGroup;
 
-    QStringList pluginPaths;
+    QStringList modulePaths;
 
-    QList<AppStartupComponentGroup> availablePlugins;
-    QList<AppStartupComponentGroup> reloadPluginsList;
-    QList<AppStartupComponentGroup> loadedPluginsList;
+    QList<AppStartupModuleGroup> availableModules;
+    QList<AppStartupModuleGroup> reloadModulesList;
+    QList<AppStartupModuleGroup> loadedModulesList;
 
-    QHash<AppStartupComponentInformation, QSharedPointer<AppStartupComponent>> componentPluginHash;
+    QHash<AppStartupModuleInformation, QSharedPointer<AppStartupModule>> componentModuleHash;
 };
 
 #endif // APPSTARTUPINSTANCE_P_H

@@ -5,7 +5,7 @@
 #include <QQmlComponent>
 
 #include "ccquickstartup_global.h"
-#include "items/appstartupcomponentinformation.h"
+#include "items/appstartupmoduleinformation.h"
 
 QT_BEGIN_NAMESPACE
 class QString;
@@ -28,31 +28,34 @@ public:
     AppStartupInstance(const QString &appId, const QString &appPath = QString(), QObject *parent = nullptr);
     ~AppStartupInstance();
 
-    void addPluginPath(const QString &dir);
-    QStringList pluginPaths() const;
+    QString appId() const;
+
+    void addModulePath(const QString &dir);
+    QStringList modulePaths() const;
 
     void setApplicationFactory(AppStartupApplicationFactory *factory);
     AppStartupApplicationFactory *applicationFactory() const;
 
-    QList<AppStartupComponentGroup> availablePlugins() const;
-    QList<AppStartupComponentGroup> loadedPlugins() const;
-    AppStartupComponentGroup defaultPlugin() const;
+    QList<AppStartupModuleGroup> availableModules() const;
+    QList<AppStartupModuleGroup> loadedModules() const;
+    AppStartupModuleGroup defaultModule() const;
 
-    void addReloadPlugin(const AppStartupComponentGroup &plugin);
-    void removeReloadPlugin(const AppStartupComponentGroup &plugin);
+    void addReloadModule(const AppStartupModuleGroup &module);
+    void removeReloadModule(const AppStartupModuleGroup &module);
 
     void reload();
-    void scanPlugins();
+    void scanModules();
 
-    void load(const AppStartupComponentGroup &plugin);
-    void unload(const AppStartupComponentGroup &plugin);
+    void load(const AppStartupModuleGroup &module);
+    void unload(const AppStartupModuleGroup &module);
 
     int exec(int &argc, char **argv);
     static AppStartupInstance *instance() { return self; }
 
 Q_SIGNALS:
-    void loadFinished(const AppStartupComponentGroup &plugin);
-    void availablePluginsChanged();
+    void loaded(const AppStartupModuleGroup &module);
+    void unloaded(const AppStartupModuleGroup &module);
+    void availableModulesChanged();
 
 private:
     static AppStartupInstance *self;

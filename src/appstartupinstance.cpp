@@ -13,29 +13,34 @@ AppStartupInstance::AppStartupInstance(const QString &appId, const QString &appP
 {
     dd->appId = appId;
 
-    const auto &paths = dd->buildinPluginPaths();
+    const auto &paths = dd->buildinModulePaths();
     for (auto iter = paths.rbegin(); iter != paths.rend(); iter++)
-        addPluginPath(*iter);
-    addPluginPath(appPath);
+        addModulePath(*iter);
+    addModulePath(appPath);
 }
 
 AppStartupInstance::~AppStartupInstance()
 {
-    dd->componentPluginHash.clear();
+    dd->componentModuleHash.clear();
     self = nullptr;
 }
 
-void AppStartupInstance::addPluginPath(const QString &dir)
+QString AppStartupInstance::appId() const
+{
+    return dd->appId;
+}
+
+void AppStartupInstance::addModulePath(const QString &dir)
 {
     if (dir.isEmpty())
         return;
-    dd->pluginPaths.append(dir);
+    dd->modulePaths.append(dir);
 }
 
-QStringList AppStartupInstance::pluginPaths() const
+QStringList AppStartupInstance::modulePaths() const
 {
     QStringList paths;
-    std::reverse_copy(dd->pluginPaths.begin(), dd->pluginPaths.end(), std::back_inserter(paths));
+    std::reverse_copy(dd->modulePaths.begin(), dd->modulePaths.end(), std::back_inserter(paths));
     return paths;
 }
 
@@ -49,61 +54,61 @@ AppStartupApplicationFactory *AppStartupInstance::applicationFactory() const
     return dd->applicationFactory;
 }
 
-void AppStartupInstance::scanPlugins()
+void AppStartupInstance::scanModules()
 {
-    dd->scanPlugins();
+    dd->scanModules();
 }
 
-QList<AppStartupComponentGroup> AppStartupInstance::availablePlugins() const
+QList<AppStartupModuleGroup> AppStartupInstance::availableModules() const
 {
-    return dd->availablePlugins;
+    return dd->availableModules;
 }
 
-AppStartupComponentGroup AppStartupInstance::defaultPlugin() const
+AppStartupModuleGroup AppStartupInstance::defaultModule() const
 {
-    return dd->defaultComponentGroup;
+    return dd->defaultModuleGroup;
 }
 
-QList<AppStartupComponentGroup> AppStartupInstance::loadedPlugins() const
+QList<AppStartupModuleGroup> AppStartupInstance::loadedModules() const
 {
-    return dd->loadedPluginsList;
+    return dd->loadedModulesList;
 }
 
-void AppStartupInstance::addReloadPlugin(const AppStartupComponentGroup &plugin)
+void AppStartupInstance::addReloadModule(const AppStartupModuleGroup &module)
 {
-    if (dd->reloadPluginsList.contains(plugin))
+    if (dd->reloadModulesList.contains(module))
         return;
 
-    dd->reloadPluginsList.append(plugin);
+    dd->reloadModulesList.append(module);
 }
 
-void AppStartupInstance::removeReloadPlugin(const AppStartupComponentGroup &plugin)
+void AppStartupInstance::removeReloadModule(const AppStartupModuleGroup &module)
 {
-    if (!dd->reloadPluginsList.contains(plugin))
+    if (!dd->reloadModulesList.contains(module))
         return;
 
-    dd->reloadPluginsList.removeOne(plugin);
+    dd->reloadModulesList.removeOne(module);
 }
 
 void AppStartupInstance::reload()
 {
-    dd->reloadAllPlugins();
+    dd->reloadAllModules();
 }
 
-void AppStartupInstance::load(const AppStartupComponentGroup &plugin)
+void AppStartupInstance::load(const AppStartupModuleGroup &module)
 {
-    if (!plugin.isValid())
+    if (!module.isValid())
         return;
 
-    dd->loadPreloadPlugins(plugin);
+    dd->loadPreloadModules(module);
 }
 
-void AppStartupInstance::unload(const AppStartupComponentGroup &plugin)
+void AppStartupInstance::unload(const AppStartupModuleGroup &module)
 {
-    if (!plugin.isValid())
+    if (!module.isValid())
         return;
 
-    dd->unloadPlugin(plugin);
+    dd->unloadModule(module);
 }
 
 int AppStartupInstance::exec(int &argc, char **argv)
@@ -114,16 +119,16 @@ int AppStartupInstance::exec(int &argc, char **argv)
     if (!dd->engine)
         dd->createEngine();
 
-    addPluginPath(dd->app->applicationDirPath() + QLatin1String("/plugins"));
+    addModulePath(dd->app->applicationDirPath() + QLatin1String("/modules"));
 
-    dd->scanPlugins();
-    dd->reloadPluginsList = dd->availablePlugins;
-    if (dd->reloadPluginsList.empty()) {
-        qFatal("No available plugins found!");
+    dd->scanModules();
+    dd->reloadModulesList = dd->availableModules;
+    if (dd->reloadModulesList.empty()) {
+        qFatal("No available modules found!");
         return -1;
     }
 
-    if (!dd->reloadAllPlugins())
+    if (!dd->reloadAllModules())
         return -1;
 
     return dd->app->exec();

@@ -1,8 +1,9 @@
 #ifndef APPSTARTUPITEMATTACHED_H
 #define APPSTARTUPITEMATTACHED_H
 
-#include <QQmlPropertyMap>
 #include <QtQml>
+#include <QQmlPropertyMap>
+#include <QQmlListProperty>
 
 #include "ccquickstartup_global.h"
 
@@ -11,7 +12,7 @@ class QQuickItem;
 QT_END_NAMESPACE
 
 class AppStartupItem;
-class AppStartupComponentGroup;
+class AppStartupModuleGroup;
 class AppStartupItemAttachedPrivate;
 
 class CC_QUICKSTARTUP_EXPORT AppStartupItemAttached : public QQmlPropertyMap
@@ -32,10 +33,6 @@ public:
 
     AppStartupItem *startupItem() const;
     void setStartupItem(AppStartupItem *item);
-
-    Q_INVOKABLE void loadComponent(const AppStartupComponentGroup &component, QQuickItem *container);
-    Q_INVOKABLE void unloadComponent(const AppStartupComponentGroup &component);
-    Q_INVOKABLE QQuickItem *componentContainer(const AppStartupComponentGroup &component) const;
 
 Q_SIGNALS:
     void loadedChanged();

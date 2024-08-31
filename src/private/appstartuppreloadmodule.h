@@ -1,25 +1,25 @@
-#ifndef APPSTARTUPPRELOADCOMPONENT_H
-#define APPSTARTUPPRELOADCOMPONENT_H
+#ifndef APPSTARTUPPRELOADMODULE_H
+#define APPSTARTUPPRELOADMODULE_H
 
-#include "appstartupcomponent.h"
+#include "appstartupmodule.h"
 
 #include "items/appstartuppreloaditem.h"
 
 class AppStartupPreloadInterface;
 
-class AppStartupPreloadComponent : public AppStartupComponent
+class AppStartupPreloadModule : public AppStartupModule
 {
     Q_OBJECT
 public:
-    using AppStartupComponent::AppStartupComponent;
-    ~AppStartupPreloadComponent();
+    using AppStartupModule::AppStartupModule;
+    ~AppStartupPreloadModule();
 
-    inline AppStartupComponentInformation::StartComponent componentType() override { return AppStartupComponentInformation::Preload; }
+    inline AppStartupModuleInformation::StartModule moduleType() override { return AppStartupModuleInformation::Preload; }
 
     inline QQuickItem *transitionItem() override { return loadingOverlay; }
     virtual QQuickTransition *transition() override;
 
-    AppStartupComponent *transitionLinkNext() override;
+    AppStartupModule *transitionLinkNext() override;
     void transitionFinish() override;
     void beforeTransition() override;
 
@@ -49,4 +49,4 @@ private:
     QVariantHash initialPropertiesHash;
 };
 
-#endif // APPSTARTUPPRELOADCOMPONENT_H
+#endif // APPSTARTUPPRELOADMODULE_H
