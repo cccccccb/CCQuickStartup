@@ -9,6 +9,7 @@ public:
 
     AppStartupInterface *_qq;
     int _type;
+    QQmlComponent *_object = nullptr;
 };
 
 AppStartupInterface::AppStartupInterface(QObject *parent)
@@ -34,4 +35,17 @@ void AppStartupInterface::setType(int yype)
         return;
     dd->_type = yype;
     Q_EMIT typeChanged();
+}
+
+QQmlComponent *AppStartupInterface::object() const
+{
+    return dd->_object;
+}
+
+void AppStartupInterface::setObject(QQmlComponent *object)
+{
+    if (dd->_object == object)
+        return;
+    dd->_object = object;
+    emit objectChanged();
 }
