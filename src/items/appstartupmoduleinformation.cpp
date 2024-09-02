@@ -33,6 +33,19 @@ AppStartupModuleInformation::AppStartupModuleInformation(const AppStartupModuleI
     this->m_path = other.m_path;
 }
 
+AppStartupModuleInformation::AppStartupModuleInformation(AppStartupModuleInformation &other)
+{
+    this->m_startModule = other.m_startModule;
+    this->m_appId = other.m_appId;
+    this->m_descriptor = other.m_descriptor;
+    this->m_version = other.m_version;
+    this->m_description = other.m_description;
+    this->m_features = other.m_features;
+    this->m_changelog = other.m_changelog;
+    this->m_default = other.m_default;
+    this->m_path = other.m_path;
+}
+
 AppStartupModuleInformation::AppStartupModuleInformation(AppStartupModuleInformation &&other)
 {
     this->m_startModule = std::move(other.m_startModule);
@@ -210,91 +223,4 @@ void AppStartupModuleInformation::setPath(const QString &path)
         return;
 
     m_path = path;
-}
-
-AppStartupModuleGroup::AppStartupModuleGroup()
-{
-
-}
-
-AppStartupModuleGroup::AppStartupModuleGroup(std::pair<AppStartupModuleInformation, AppStartupModuleInformation> args)
-    : m_group(args)
-{
-
-}
-
-AppStartupModuleGroup::AppStartupModuleGroup(const AppStartupModuleGroup &other)
-{
-    this->m_group = other.m_group;
-    this->m_bindingProperties = other.m_bindingProperties;
-}
-
-AppStartupModuleGroup::AppStartupModuleGroup(AppStartupModuleGroup &&other)
-{
-    this->m_group = std::move(other.m_group);
-    this->m_bindingProperties = std::move(other.m_bindingProperties);
-}
-
-AppStartupModuleGroup &AppStartupModuleGroup::operator=(const AppStartupModuleGroup &other)
-{
-    this->m_group = other.m_group;
-    this->m_bindingProperties = other.m_bindingProperties;
-    return *this;
-}
-
-AppStartupModuleGroup &AppStartupModuleGroup::operator=(AppStartupModuleGroup &&other)
-{
-    this->m_group = other.m_group;
-    this->m_bindingProperties = other.m_bindingProperties;
-    return *this;
-}
-
-bool AppStartupModuleGroup::operator==(const AppStartupModuleGroup &other) const
-{
-    return this->m_group == other.m_group;
-}
-
-bool AppStartupModuleGroup::operator!=(const AppStartupModuleGroup &other) const
-{
-    return this->m_group != other.m_group;
-}
-
-bool AppStartupModuleGroup::isValid() const
-{
-    return m_group.first.isValid() && m_group.second.isValid();
-}
-
-AppStartupModuleInformation AppStartupModuleGroup::preload() const
-{
-    return m_group.first;
-}
-
-void AppStartupModuleGroup::setPreload(const AppStartupModuleInformation &preload)
-{
-    m_group.first = preload;
-}
-
-AppStartupModuleInformation AppStartupModuleGroup::entity() const
-{
-    return m_group.second;
-}
-
-void AppStartupModuleGroup::setEntity(const AppStartupModuleInformation &entity)
-{
-    m_group.second = entity;
-}
-
-bool AppStartupModuleGroup::loaded() const
-{
-    return AppStartupInstance::instance()->loadedModules().contains(*this);
-}
-
-void AppStartupModuleGroup::setItemSurface(QQuickItem *item)
-{
-    m_bindingProperties.insert(BindingProperty::ItemSurface, QVariant::fromValue<QQuickItem *>(item));
-}
-
-QVariant AppStartupModuleGroup::bindingProperty(BindingProperty property) const
-{
-    return m_bindingProperties.value(property);
 }

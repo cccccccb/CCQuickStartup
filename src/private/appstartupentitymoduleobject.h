@@ -1,26 +1,26 @@
-#ifndef APPSTARTUPENTITYMODULE_H
-#define APPSTARTUPENTITYMODULE_H
+#ifndef APPSTARTUPENTITYMODULEOBJECT_H
+#define APPSTARTUPENTITYMODULEOBJECT_H
 
-#include "appstartupmodule.h"
+#include "appstartupmoduleobject.h"
 
 class AppStartupComponent;
 class AppStartupEntityInterface;
 class AppStartupItem;
 
-class AppStartupEntityModule : public AppStartupModule
+class AppStartupEntityModuleObject : public AppStartupModuleObject
 {
     Q_OBJECT
     friend class AppQmlComponentIncubator;
 public:
-    using AppStartupModule::AppStartupModule;
-    ~AppStartupEntityModule();
+    using AppStartupModuleObject::AppStartupModuleObject;
+    ~AppStartupEntityModuleObject();
 
     inline AppStartupModuleInformation::StartModule moduleType() override { return AppStartupModuleInformation::Entity; }
 
     QQuickItem *transitionItem() override;
     QQuickTransition *transition() override;
+    AppStartupModuleObject *transitionLinkPrev() override;
 
-    AppStartupModule *transitionLinkPrev() override;
     void transitionFinish() override;
     void beforeTransition() override;
 
@@ -34,6 +34,7 @@ private Q_SLOTS:
     void _q_onComponentProgressChanged();
 
 private:
+    void resovleInterface(AppStartupItem *rootItem);
     bool createObjects(const QQmlListReference &pros);
     void createChildComponents();
     void createComponnet(AppStartupComponent *component);
@@ -61,4 +62,4 @@ private:
     int childrenCount = 0;
 };
 
-#endif // APPSTARTUPENTITYMODULE_H
+#endif // APPSTARTUPENTITYMODULEOBJECT_H

@@ -1,11 +1,12 @@
 #include "appstartupinstance_p.h"
 
 #include "appstartupapplicationfactory.h"
-#include "appstartupentitymodule.h"
-#include "appstartuppreloadmodule.h"
+#include "appstartupentitymoduleobject.h"
+#include "appstartuppreloadmoduleobject.h"
 
 #include "interface/appstartuppreloadinterface.h"
 #include "interface/appstartupentityinterface.h"
+#include "items/appstartupmodulegroup.h"
 
 #include <QDir>
 #include <QLibrary>
@@ -23,12 +24,12 @@ public:
 
     }
 
-    inline AppStartupModule *create(const AppStartupModuleInformation &module)
+    inline AppStartupModuleObject *create(const AppStartupModuleInformation &module)
     {
         if (module.startModule() == AppStartupModuleInformation::Preload) {
-            return new AppStartupPreloadModule(module, dd);
+            return new AppStartupPreloadModuleObject(module, dd);
         } else if (module.startModule() == AppStartupModuleInformation::Entity) {
-            return new AppStartupEntityModule(module, dd);
+            return new AppStartupEntityModuleObject(module, dd);
         }
 
         return nullptr;
@@ -119,7 +120,7 @@ QList<AppStartupModuleInformation> AppStartupInstancePrivate::scanStaticModules(
 
 void AppStartupInstancePrivate::detachAvailableModulesChange(const QList<AppStartupModuleInformation> &modules)
 {
-    QList<AppStartupModuleGroup> groupList;
+    QList<QSharedPointer<AppStartupModuleGroup>> groupList;
     bool availableChanged = false;
 
     int left = 0;
@@ -143,7 +144,7 @@ void AppStartupInstancePrivate::detachAvailableModulesChange(const QList<AppStar
 
         const QString &desciptor = modules[right].descriptor();
         if (desciptor == modules[left].descriptor()) {
-            AppStartupModuleGroup group({modules[left], modules[right]});
+            QSharedPointer<AppStartupModuleGroup> group(new AppStartupModuleGroup({modules[left], modules[right]}, qq));
             if (!availableChanged && !availableModules.contains(group)) {
                 availableChanged = true;
             }
@@ -167,7 +168,7 @@ bool AppStartupInstancePrivate::reloadAllModules()
 
     unloadAllModules();
     findDefaultModuleGroup();
-    if (!this->defaultModuleGroup.isValid())
+    if (!this->defaultModuleGroup->isValid())
         return false;
 
     reloadModulesList.removeOne(defaultModuleGroup);
@@ -190,12 +191,12 @@ void AppStartupInstancePrivate::unloadAllModules()
     loadedModulesList.clear();
 }
 
-void AppStartupInstancePrivate::unloadModule(const AppStartupModuleGroup &module)
+void AppStartupInstancePrivate::unloadModule(const QSharedPointer<AppStartupModuleGroup> &module)
 {
     // unload the exist modules
     auto it = componentModuleHash.begin();
     while (it != componentModuleHash.end()) {
-        if (it.key() == module.preload() || it.key() == module.entity()) {
+        if (it.key() == module->preload() || it.key() == module->entity()) {
             it = componentModuleHash.erase(it);
         }
     }
@@ -206,54 +207,54 @@ void AppStartupInstancePrivate::unloadModule(const AppStartupModuleGroup &module
 
 void AppStartupInstancePrivate::findDefaultModuleGroup()
 {
-    AppStartupModuleGroup moduleGroup;
+    QSharedPointer<AppStartupModuleGroup> moduleGroup;
     for (const auto &group : reloadModulesList) {
-        if (!group.isValid() || !group.preload().isDefault() || !group.entity().isDefault())
+        if (!group->isValid() || !group->preload().isDefault() || !group->entity().isDefault())
             continue;
 
-        if (moduleGroup.entity().version() < group.entity().version())
+        if (!moduleGroup || moduleGroup->entity().version() < group->entity().version())
             moduleGroup = group;
     }
 
-    if (moduleGroup.isValid())
+    if (moduleGroup->isValid())
         this->defaultModuleGroup = moduleGroup;
 }
 
-void AppStartupInstancePrivate::loadEntityModules(const AppStartupModuleGroup &moduleGroup)
+void AppStartupInstancePrivate::loadEntityModules(const QSharedPointer<AppStartupModuleGroup> &module)
 {
-    AppStartupModule *module = moduleFactory->create(moduleGroup.entity());
-    if (!module)
+    AppStartupModuleObject *moduleObject = moduleFactory->create(module->entity());
+    if (!moduleObject)
         return;
 
-    auto preloadModule = this->componentModuleHash.value(moduleGroup.preload());
+    auto preloadModule = this->componentModuleHash.value(module->preload());
     if (preloadModule) {
-        module->setBinder(preloadModule.get());
-        preloadModule->setBinder(module);
+        moduleObject->setBinder(preloadModule.get());
+        preloadModule->setBinder(moduleObject);
     }
 
-    module->setGroup(moduleGroup);
-    this->componentModuleHash.insert(moduleGroup.entity(), QSharedPointer<AppStartupModule>(module));
-    module->load();
+    moduleObject->setGroup(module);
+    this->componentModuleHash.insert(module->entity(), QSharedPointer<AppStartupModuleObject>(moduleObject));
+    moduleObject->load();
 }
 
-bool AppStartupInstancePrivate::loadPreloadModules(const AppStartupModuleGroup &moduleGroup)
+bool AppStartupInstancePrivate::loadPreloadModules(const QSharedPointer<AppStartupModuleGroup> &module)
 {
-    if (!moduleGroup.isValid()) {
+    if (!module->isValid()) {
         //! @todo add error
         qFatal("No preload module found when load the exist modules!");
         return false;
     }
 
-    AppStartupModule *module = moduleFactory->create(moduleGroup.preload());
-    if (!module) {
+    AppStartupModuleObject *moduleObject = moduleFactory->create(module->preload());
+    if (!moduleObject) {
         //! @todo add error
         qFatal("Create preload module failed!");
         return false;
     }
 
-    module->setGroup(moduleGroup);
-    this->componentModuleHash.insert(moduleGroup.preload(), QSharedPointer<AppStartupModule>(module));
-    return module->load();
+    moduleObject->setGroup(module);
+    this->componentModuleHash.insert(module->preload(), QSharedPointer<AppStartupModuleObject>(moduleObject));
+    return moduleObject->load();
 }
 
 bool AppStartupInstancePrivate::resolveInformation(const QJsonObject &obj, AppStartupModuleInformation *info)

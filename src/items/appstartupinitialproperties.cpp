@@ -1,7 +1,5 @@
 #include "appstartupinitialproperties.h"
 
-#include <QQuickItem>
-
 AppStartupInitialProperties::AppStartupInitialProperties(QObject *parent)
     : QObject(parent)
 {

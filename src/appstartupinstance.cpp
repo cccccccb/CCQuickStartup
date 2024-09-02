@@ -1,5 +1,6 @@
 #include "appstartupinstance.h"
 #include "private/appstartupinstance_p.h"
+#include "items/appstartupmodulegroup.h"
 
 #include <QEvent>
 #include <QGuiApplication>
@@ -59,22 +60,22 @@ void AppStartupInstance::scanModules()
     dd->scanModules();
 }
 
-QList<AppStartupModuleGroup> AppStartupInstance::availableModules() const
+QList<QSharedPointer<AppStartupModuleGroup>> AppStartupInstance::availableModules() const
 {
     return dd->availableModules;
 }
 
-AppStartupModuleGroup AppStartupInstance::defaultModule() const
+QSharedPointer<AppStartupModuleGroup> AppStartupInstance::defaultModule() const
 {
     return dd->defaultModuleGroup;
 }
 
-QList<AppStartupModuleGroup> AppStartupInstance::loadedModules() const
+QList<QSharedPointer<AppStartupModuleGroup>> AppStartupInstance::loadedModules() const
 {
     return dd->loadedModulesList;
 }
 
-void AppStartupInstance::addReloadModule(const AppStartupModuleGroup &module)
+void AppStartupInstance::addReloadModule(const QSharedPointer<AppStartupModuleGroup> &module)
 {
     if (dd->reloadModulesList.contains(module))
         return;
@@ -82,7 +83,7 @@ void AppStartupInstance::addReloadModule(const AppStartupModuleGroup &module)
     dd->reloadModulesList.append(module);
 }
 
-void AppStartupInstance::removeReloadModule(const AppStartupModuleGroup &module)
+void AppStartupInstance::removeReloadModule(const QSharedPointer<AppStartupModuleGroup> &module)
 {
     if (!dd->reloadModulesList.contains(module))
         return;
@@ -95,17 +96,17 @@ void AppStartupInstance::reload()
     dd->reloadAllModules();
 }
 
-void AppStartupInstance::load(const AppStartupModuleGroup &module)
+void AppStartupInstance::load(const QSharedPointer<AppStartupModuleGroup> &module)
 {
-    if (!module.isValid())
+    if (!module->isValid())
         return;
 
     dd->loadPreloadModules(module);
 }
 
-void AppStartupInstance::unload(const AppStartupModuleGroup &module)
+void AppStartupInstance::unload(const QSharedPointer<AppStartupModuleGroup> &module)
 {
-    if (!module.isValid())
+    if (!module->isValid())
         return;
 
     dd->unloadModule(module);

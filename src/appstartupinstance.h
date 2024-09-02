@@ -5,7 +5,6 @@
 #include <QQmlComponent>
 
 #include "ccquickstartup_global.h"
-#include "items/appstartupmoduleinformation.h"
 
 QT_BEGIN_NAMESPACE
 class QString;
@@ -15,6 +14,7 @@ class QGuiApplication;
 class QQuickTransition;
 QT_END_NAMESPACE
 
+class AppStartupModuleGroup;
 class AppStartupApplicationFactory;
 class AppStartupInstancePrivate;
 
@@ -36,25 +36,25 @@ public:
     void setApplicationFactory(AppStartupApplicationFactory *factory);
     AppStartupApplicationFactory *applicationFactory() const;
 
-    QList<AppStartupModuleGroup> availableModules() const;
-    QList<AppStartupModuleGroup> loadedModules() const;
-    AppStartupModuleGroup defaultModule() const;
+    QList<QSharedPointer<AppStartupModuleGroup>> availableModules() const;
+    QList<QSharedPointer<AppStartupModuleGroup>> loadedModules() const;
+    QSharedPointer<AppStartupModuleGroup> defaultModule() const;
 
-    void addReloadModule(const AppStartupModuleGroup &module);
-    void removeReloadModule(const AppStartupModuleGroup &module);
+    void addReloadModule(const QSharedPointer<AppStartupModuleGroup> &module);
+    void removeReloadModule(const QSharedPointer<AppStartupModuleGroup> &module);
 
     void reload();
     void scanModules();
 
-    void load(const AppStartupModuleGroup &module);
-    void unload(const AppStartupModuleGroup &module);
+    void load(const QSharedPointer<AppStartupModuleGroup> &module);
+    void unload(const QSharedPointer<AppStartupModuleGroup> &module);
 
     int exec(int &argc, char **argv);
     static AppStartupInstance *instance() { return self; }
 
 Q_SIGNALS:
-    void loaded(const AppStartupModuleGroup &module);
-    void unloaded(const AppStartupModuleGroup &module);
+    void loaded(const QSharedPointer<AppStartupModuleGroup> &module);
+    void unloaded(const QSharedPointer<AppStartupModuleGroup> &module);
     void availableModulesChanged();
 
 private:

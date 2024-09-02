@@ -2,12 +2,13 @@
 #define APPSTARTUPINSTANCE_P_H
 
 #include "appstartupinstance.h"
+#include "items/appstartupmoduleinformation.h"
 
 class QQmlApplicationEngine;
 class QQuickItem;
 
 class AppStartupItem;
-class AppStartupModule;
+class AppStartupModuleObject;
 class AppStartupModuleFactory;
 
 class AppStartupInstancePrivate
@@ -25,11 +26,11 @@ public:
 
     bool reloadAllModules();
     void unloadAllModules();
-    void unloadModule(const AppStartupModuleGroup &module);
+    void unloadModule(const QSharedPointer<AppStartupModuleGroup> &module);
 
     void findDefaultModuleGroup();
-    bool loadPreloadModules(const AppStartupModuleGroup &module);
-    void loadEntityModules(const AppStartupModuleGroup &module);
+    bool loadPreloadModules(const QSharedPointer<AppStartupModuleGroup> &module);
+    void loadEntityModules(const QSharedPointer<AppStartupModuleGroup> &module);
     void processCommandLineArguments();
 
     void createApplication(int &argc, char **argv);
@@ -47,15 +48,15 @@ public:
 
     AppStartupApplicationFactory *applicationFactory = nullptr;
     QScopedPointer<AppStartupModuleFactory> moduleFactory;
-    AppStartupModuleGroup defaultModuleGroup;
+    QSharedPointer<AppStartupModuleGroup> defaultModuleGroup;
 
     QStringList modulePaths;
 
-    QList<AppStartupModuleGroup> availableModules;
-    QList<AppStartupModuleGroup> reloadModulesList;
-    QList<AppStartupModuleGroup> loadedModulesList;
+    QList<QSharedPointer<AppStartupModuleGroup>> availableModules;
+    QList<QSharedPointer<AppStartupModuleGroup>> reloadModulesList;
+    QList<QSharedPointer<AppStartupModuleGroup>> loadedModulesList;
 
-    QHash<AppStartupModuleInformation, QSharedPointer<AppStartupModule>> componentModuleHash;
+    QHash<AppStartupModuleInformation, QSharedPointer<AppStartupModuleObject>> componentModuleHash;
 };
 
 #endif // APPSTARTUPINSTANCE_P_H

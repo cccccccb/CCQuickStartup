@@ -1,43 +1,47 @@
-#ifndef APPSTARTUPMODULE_H
-#define APPSTARTUPMODULE_H
+#ifndef APPSTARTUPMODULEOBJECT_H
+#define APPSTARTUPMODULEOBJECT_H
 
 #include <QObject>
 
 #include <private/qquickitemchangelistener_p.h>
 
 #include "appstartupinstance.h"
+#include "items/appstartupmodulegroup.h"
 #include "items/appstartuptransitiongroup.h"
 #include "items/appstartupmoduleinformation.h"
 
 class AppStartupInitialProperties;
 class AppStartUpTransitionManager;
 
-class AppStartupModule : public QObject, public QQuickItemChangeListener
+class AppStartupModuleObject : public QObject, public QQuickItemChangeListener
 {
     friend class AppQmlComponentIncubator;
     friend class AppStartupInstancePrivate;
 public:
-    AppStartupModule(const AppStartupModuleInformation &module, AppStartupInstancePrivate *dd);
-    ~AppStartupModule();
+    AppStartupModuleObject(const AppStartupModuleInformation &module, AppStartupInstancePrivate *dd);
+    ~AppStartupModuleObject();
 
-    void setBinder(AppStartupModule *binder);
-    AppStartupModule *binder() const;
+    void setBinder(AppStartupModuleObject *binder);
+    AppStartupModuleObject *binder() const;
 
     QPointer<QQuickItem> contentItem() const;
     void setContentItem(QQuickItem *item);
 
     AppStartupModuleInformation information() const;
 
-    AppStartupModuleGroup group() const;
-    void setGroup(const AppStartupModuleGroup &group);
+    QSharedPointer<AppStartupModuleGroup> group() const;
+    void setGroup(const QSharedPointer<AppStartupModuleGroup> &group);
+    QVariant moduleBindingProperty(AppStartupModuleGroup::BindingProperty type);
+    void insertModuleBindingProperty(AppStartupModuleGroup::BindingProperty type, const QVariant &value);
+    void insertModuleBindingPropertyList(AppStartupModuleGroup::BindingProperty type, const QVariantList &value);
 
     virtual AppStartupModuleInformation::StartModule moduleType() = 0;
     virtual bool load() { return false; }
 
     virtual QQuickItem *transitionItem() { return nullptr; }
     virtual QQuickTransition *transition() { return nullptr; }
-    virtual AppStartupModule *transitionLinkNext() {return nullptr;}
-    virtual AppStartupModule *transitionLinkPrev() {return nullptr;}
+    virtual AppStartupModuleObject *transitionLinkNext() {return nullptr;}
+    virtual AppStartupModuleObject *transitionLinkPrev() {return nullptr;}
 
     enum TrasitionBeginMode { BeginHead, BeginCurrent };
     virtual bool startTransition(TrasitionBeginMode mode = TrasitionBeginMode::BeginHead);
@@ -66,21 +70,19 @@ protected:
     AppStartupInstancePrivate *dd = nullptr;
 
     QPluginLoader *_loader = nullptr;
-    AppStartupModule *_binder = nullptr;
+    AppStartupModuleObject *_binder = nullptr;
 
     AppStartupModuleInformation _information;
-    AppStartupModuleGroup _group;
+    QSharedPointer<AppStartupModuleGroup> _group;
 
     bool _appSurfaceIsWindow = false;
     struct SurfacePointer {
-        QPointer<QQuickWindow> appSurfaceWindow = nullptr;
-        QPointer<QQuickItem> appSurfaceItem = nullptr;
+        QPointer<QQuickWindow> appSurfaceWindow;
+        QPointer<QQuickItem> appSurfaceItem;
     } _surfacePointer;
 
     QPointer<QQuickItem> _containerContentItem;
-
-
-    QPointer<QQuickItem> _contentItem = nullptr;
+    QPointer<QQuickItem> _contentItem;
 
     bool _duringTransition = false;
     AppStartUpTransitionManager *_transitionManager = nullptr;
@@ -91,4 +93,4 @@ private:
     void transitionFinishedImpl();
 };
 
-#endif // APPSTARTUPMODULE_H
+#endif // APPSTARTUPMODULEOBJECT_H

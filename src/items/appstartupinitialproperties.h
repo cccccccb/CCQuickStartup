@@ -5,8 +5,6 @@
 
 #include <QtQml>
 
-class QQuickItem;
-
 class CC_QUICKSTARTUP_EXPORT AppStartupInitialProperties : public QObject
 {
     Q_OBJECT

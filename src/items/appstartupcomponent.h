@@ -27,10 +27,10 @@ public:
     ~AppStartupComponent();
 
     AppStartupInitialProperties * initialProperties() const;
-    void setInitialProperties(AppStartupInitialProperties *newInitialProperties);
+    void setInitialProperties(AppStartupInitialProperties *initialProperties);
 
     QQmlComponent *target() const;
-    void setTarget(QQmlComponent *newTarget);
+    void setTarget(QQmlComponent *target);
 
     QQmlListProperty<AppStartupComponent> depends();
     //! @todo shared context ?

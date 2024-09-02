@@ -1,14 +1,14 @@
-#include "appstartupentitymodule.h"
+#include "appstartupentitymoduleobject.h"
 #include "appstartupcomponent.h"
 #include "appstartupinstance_p.h"
 #include "defines_p.h"
 
 #include "interface/appstartupentityinterface.h"
-#include "items/appstartupinitialproperties.h"
 #include "items/appstartupitemattached.h"
 #include "items/appstartuptransitiongroup.h"
 #include "items/appstartupitem.h"
 #include "items/appstartuppreloaditem.h"
+#include "items/appstartupinterface.h"
 
 #include <QPluginLoader>
 #include <QQmlIncubator>
@@ -36,20 +36,20 @@ class AppQmlComponentIncubator : public QQmlIncubator
 {
 public:
     AppQmlComponentIncubator(AppStartupComponent *startupComponent, QQmlComponent *component,
-                             AppStartupEntityModule *appExtra, IncubationMode mode = AsynchronousIfNested);
+                             AppStartupEntityModuleObject *appExtra, IncubationMode mode = AsynchronousIfNested);
 
 protected:
     virtual void statusChanged(Status) override;
     virtual void setInitialState(QObject *) override;
 
 private:
-    AppStartupEntityModule *entityModule;
+    AppStartupEntityModuleObject *entityModule;
     AppStartupComponent *startupComponent;
     QQmlComponent *compnent;
 };
 
 AppQmlComponentIncubator::AppQmlComponentIncubator(AppStartupComponent *startupComponent, QQmlComponent *component,
-                                                   AppStartupEntityModule *entityModule, QQmlIncubator::IncubationMode mode)
+                                                   AppStartupEntityModuleObject *entityModule, QQmlIncubator::IncubationMode mode)
     : QQmlIncubator(mode)
     , startupComponent(startupComponent)
     , entityModule(entityModule)
@@ -76,10 +76,10 @@ void AppQmlComponentIncubator::statusChanged(QQmlIncubator::Status status)
     entityModule->_q_onComponentProgressChanged();
 
     QList<AppStartupComponent *> readyCreateComponents;
-    AppStartupEntityModule::ComponentDependency *dependency = entityModule->componentDependencyHash.value(startupComponent);
+    AppStartupEntityModuleObject::ComponentDependency *dependency = entityModule->componentDependencyHash.value(startupComponent);
     if (dependency && !dependency->beingDepends.isEmpty()) {
         for (auto beingDepends : dependency->beingDepends) {
-            AppStartupEntityModule::ComponentDependency *beingDependsDependency = entityModule->componentDependencyHash.value(beingDepends);
+            AppStartupEntityModuleObject::ComponentDependency *beingDependsDependency = entityModule->componentDependencyHash.value(beingDepends);
             if (!beingDependsDependency)
                 continue;
 
@@ -125,28 +125,28 @@ void AppQmlComponentIncubator::setInitialState(QObject *o)
     }
 }
 
-AppStartupEntityModule::~AppStartupEntityModule()
+AppStartupEntityModuleObject::~AppStartupEntityModuleObject()
 {
     qDebug() << "App startup entity component destruction";
     entityInstance = nullptr;
 }
 
-QQuickItem *AppStartupEntityModule::transitionItem()
+QQuickItem *AppStartupEntityModuleObject::transitionItem()
 {
     return contentItem();
 }
 
-QQuickTransition *AppStartupEntityModule::transition()
+QQuickTransition *AppStartupEntityModuleObject::transition()
 {
     return _transitionGroup ? _transitionGroup->enter() : nullptr;
 }
 
-AppStartupModule *AppStartupEntityModule::transitionLinkPrev()
+AppStartupModuleObject *AppStartupEntityModuleObject::transitionLinkPrev()
 {
     return binder();
 }
 
-void AppStartupEntityModule::transitionFinish()
+void AppStartupEntityModuleObject::transitionFinish()
 {
     endOfTransition();
     if (_transitionGroup && !initialPropertiesHash.isEmpty()) {
@@ -156,14 +156,14 @@ void AppStartupEntityModule::transitionFinish()
     }
 }
 
-void AppStartupEntityModule::beforeTransition()
+void AppStartupEntityModuleObject::beforeTransition()
 {
     AppStartupItem *rootItem = appRootItem();
     if (_transitionGroup && rootItem)
         initialPropertiesHash = initialItemProperties(rootItem, _transitionGroup->enterInitialProperties());
 }
 
-bool AppStartupEntityModule::load()
+bool AppStartupEntityModuleObject::load()
 {
     QObject *obj = this->loadModule(this->_information.path());
     if (!obj) {
@@ -184,7 +184,7 @@ bool AppStartupEntityModule::load()
     entityComponent = new QQmlComponent(dd->engine.get(), entityModulePath, QQmlComponent::Asynchronous);
     if (entityComponent->isLoading()) {
         QObject::connect(entityComponent, &QQmlComponent::statusChanged,
-                         this, &AppStartupEntityModule::_q_onEntityModuleStatusChanged);
+                         this, &AppStartupEntityModuleObject::_q_onEntityModuleStatusChanged);
     } else {
         if (entityComponent->status() == QQmlComponent::Error) {
             qWarning() << "AppStartupInstance: " << entityComponent->errors() << ", " << qPrintable(entityComponent->errorString());
@@ -197,7 +197,7 @@ bool AppStartupEntityModule::load()
     return true;
 }
 
-void AppStartupEntityModule::finishedLoaded()
+void AppStartupEntityModuleObject::finishedLoaded()
 {
     AppStartupItem *rootItem = appRootItem();
     entityInstance->finishedLoading(dd->engine.get());
@@ -216,7 +216,7 @@ void AppStartupEntityModule::finishedLoaded()
 
     rootItem->setFocus(true);
 
-    AppStartupModuleGroup module({binder()->information(), this->information()});
+    QSharedPointer<AppStartupModuleGroup> module(new AppStartupModuleGroup({binder()->information(), this->information()}, qq));
     dd->loadedModulesList += module;
     Q_EMIT qq->loaded(module);
 
@@ -226,7 +226,7 @@ void AppStartupEntityModule::finishedLoaded()
     }
 }
 
-void AppStartupEntityModule::endOfTransition()
+void AppStartupEntityModuleObject::endOfTransition()
 {
     AppStartupItem *rootItem = appRootItem();
 
@@ -238,7 +238,7 @@ void AppStartupEntityModule::endOfTransition()
     }
 }
 
-AppStartupItem *AppStartupEntityModule::appRootItem() const
+AppStartupItem *AppStartupEntityModuleObject::appRootItem() const
 {
     if (contentItem().isNull())
         return nullptr;
@@ -246,7 +246,7 @@ AppStartupItem *AppStartupEntityModule::appRootItem() const
     return qmlobject_cast<AppStartupItem *>(contentItem());
 }
 
-void AppStartupEntityModule::destoryIncubator(QQmlIncubator *incubator)
+void AppStartupEntityModuleObject::destoryIncubator(QQmlIncubator *incubator)
 {
     incubators.removeAll(incubator);
     childrenCount--;
@@ -258,7 +258,7 @@ void AppStartupEntityModule::destoryIncubator(QQmlIncubator *incubator)
     delete incubator;
 }
 
-void AppStartupEntityModule::_q_onEntityModuleStatusChanged(QQmlComponent::Status status)
+void AppStartupEntityModuleObject::_q_onEntityModuleStatusChanged(QQmlComponent::Status status)
 {
     if (status != QQmlComponent::Ready) {
         if (status == QQmlComponent::Error)
@@ -281,7 +281,7 @@ void AppStartupEntityModule::_q_onEntityModuleStatusChanged(QQmlComponent::Statu
     entityComponent = nullptr;
 }
 
-void AppStartupEntityModule::_q_onComponentProgressChanged()
+void AppStartupEntityModuleObject::_q_onComponentProgressChanged()
 {
     AppStartupItem *rootItem = appRootItem();
     qreal progress = 0;
@@ -294,13 +294,27 @@ void AppStartupEntityModule::_q_onComponentProgressChanged()
     rootItem->setProgress(progress / components.count());
 }
 
-void AppStartupEntityModule::itemGeometryChanged(QQuickItem *item, QQuickGeometryChange change, const QRectF &oldGeometry)
+void AppStartupEntityModuleObject::resovleInterface(AppStartupItem *rootItem)
+{
+    if (!rootItem)
+        return;
+
+    auto interfaces = rootItem->interfaces().toList<QList<AppStartupInterface *>>();
+    QVariantList variantList;
+    std::transform(interfaces.begin(), interfaces.end(), std::back_inserter(variantList), [](AppStartupInterface *interface) {
+        return QVariant::fromValue<AppStartupInterface *>(interface);
+    });
+
+    insertModuleBindingPropertyList(AppStartupModuleGroup::ResolvedInterface, variantList);
+}
+
+void AppStartupEntityModuleObject::itemGeometryChanged(QQuickItem *item, QQuickGeometryChange change, const QRectF &oldGeometry)
 {
     updateRootItemSize(item);
     QQuickItemChangeListener::itemGeometryChanged(item, change, oldGeometry);
 }
 
-bool AppStartupEntityModule::createObjects(const QQmlListReference &pros)
+bool AppStartupEntityModuleObject::createObjects(const QQmlListReference &pros)
 {
     Q_ASSERT(entityComponent);
     if (!pros.isValid())
@@ -321,6 +335,7 @@ bool AppStartupEntityModule::createObjects(const QQmlListReference &pros)
 
     Q_ASSERT_X(rootItem, "AppStartupInstance", qPrintable("Create the AppStartupItem item failed!"));
 
+    resovleInterface(rootItem);
     if (QQmlContext *context = transitionGroupContextFromBinder())
         context->setContextProperty(QLatin1String("enterTarget"), rootItem);
 
@@ -343,7 +358,7 @@ bool AppStartupEntityModule::createObjects(const QQmlListReference &pros)
     return true;
 }
 
-void AppStartupEntityModule::createChildComponents()
+void AppStartupEntityModuleObject::createChildComponents()
 {
     AppStartupItem *rootItem = appRootItem();
 
@@ -409,11 +424,11 @@ void AppStartupEntityModule::createChildComponents()
     }
 }
 
-void AppStartupEntityModule::createComponnet(AppStartupComponent *component)
+void AppStartupEntityModuleObject::createComponnet(AppStartupComponent *component)
 {
     QQmlComponent *targetComponent = component->target();
     QObject::connect(targetComponent, &QQmlComponent::progressChanged, this,
-                     &AppStartupEntityModule::_q_onComponentProgressChanged);
+                     &AppStartupEntityModuleObject::_q_onComponentProgressChanged);
 
     AppStartupItem *rootItem = appRootItem();
     auto asyn = rootItem->asynchronous() ? AppQmlComponentIncubator::Asynchronous : AppQmlComponentIncubator::AsynchronousIfNested;
@@ -422,7 +437,7 @@ void AppStartupEntityModule::createComponnet(AppStartupComponent *component)
     targetComponent->create(*incubator, creationContext(targetComponent, rootItem));
 }
 
-QQmlListReference AppStartupEntityModule::findWindowDefaultDataRef()
+QQmlListReference AppStartupEntityModuleObject::findWindowDefaultDataRef()
 {
     QQuickWindow *window = appWindowFromBinder();
     if (!window)
@@ -436,7 +451,7 @@ QQmlListReference AppStartupEntityModule::findWindowDefaultDataRef()
     return pros;
 }
 
-void AppStartupEntityModule::updateRootItemSize(QQuickItem *item)
+void AppStartupEntityModuleObject::updateRootItemSize(QQuickItem *item)
 {
     AppStartupItem *rootItem = appRootItem();
     if (!rootItem)
