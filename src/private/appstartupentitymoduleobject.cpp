@@ -224,6 +224,9 @@ void AppStartupEntityModuleObject::finishedLoaded()
         dd->loadPreloadModules(*it);
         it = dd->reloadModulesList.erase(it);
     }
+
+    qDeleteAll(componentDependencyHash);
+    componentDependencyHash.clear();
 }
 
 void AppStartupEntityModuleObject::endOfTransition()
@@ -248,7 +251,7 @@ AppStartupItem *AppStartupEntityModuleObject::appRootItem() const
 
 void AppStartupEntityModuleObject::destoryIncubator(QQmlIncubator *incubator)
 {
-    incubators.removeAll(incubator);
+    incubators.removeOne(incubator);
     childrenCount--;
 
     if (childrenCount == 0)
