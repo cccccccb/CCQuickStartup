@@ -69,9 +69,9 @@ bool AppStartupModuleGroup::loaded() const
     return AppStartupInstance::instance()->loadedModules().contains(this);
 }
 
-void AppStartupModuleGroup::setItemSurface(QQuickItem *item)
+void AppStartupModuleGroup::setSurfaceItem(QQuickItem *item)
 {
-    dd->_bindingProperties.insert(BindingProperty::ItemSurface, QVariant::fromValue<QQuickItem *>(item));
+    dd->_bindingProperties.insert(BindingProperty::SurfaceItem, QVariant::fromValue<QQuickItem *>(item));
 }
 
 QList<AppStartupInterface *> AppStartupModuleGroup::resolveInterface(int type)

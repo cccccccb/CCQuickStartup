@@ -13,6 +13,7 @@
 #include <QQmlContext>
 #include <QQmlApplicationEngine>
 #include <QPluginLoader>
+#include <QFileInfo>
 
 #include <private/qquicktransition_p.h>
 
@@ -120,7 +121,7 @@ bool AppStartupPreloadModuleObject::createSurface()
     } else {
         auto defaultEntityModule = dd->componentModuleHash.value(dd->defaultModuleGroup->entity());
 
-        QQuickItem *container = qvariant_cast<QQuickItem *>(moduleBindingProperty(AppStartupModuleGroup::ItemSurface));
+        QQuickItem *container = qvariant_cast<QQuickItem *>(moduleBindingProperty(AppStartupModuleGroup::SurfaceItem));
         if (!container) {
             qWarning() << "Could not find the item module container";
             return false;
@@ -219,7 +220,7 @@ bool AppStartupPreloadModuleObject::load()
 
     preloadInstance->aboutToPreload(dd->engine.get());
     QObject::connect(dd->engine.get(), &QQmlApplicationEngine::objectCreated,
-                     this, &AppStartupPreloadModuleObject::_q_onPreloadCreated);
+                     this, &AppStartupPreloadModuleObject::_q_onPreloadCreated, Qt::SingleShotConnection);
     dd->engine->load(preloadInstance->preloadModulePath());
     if (dd->engine->rootObjects().isEmpty()) {
         qWarning() << "No root object created!";
@@ -231,7 +232,13 @@ bool AppStartupPreloadModuleObject::load()
 
 void AppStartupPreloadModuleObject::_q_onPreloadCreated(QObject *obj, const QUrl &objUrl)
 {
-    if (!obj && preloadInstance->preloadModulePath() == objUrl) {
+    if (objUrl.isLocalFile() && QFileInfo(objUrl.toString()) != QFileInfo(preloadInstance->preloadModulePath().toString()))
+         return;
+
+    if (objUrl != preloadInstance->preloadModulePath() && QFileInfo(objUrl.toString()) != QFileInfo(preloadInstance->preloadModulePath().toString()))
+        return;
+
+    if (!obj) {
         qWarning() << "Create module preload failed!";
         return;
     }

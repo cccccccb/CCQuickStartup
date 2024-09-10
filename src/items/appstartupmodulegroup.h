@@ -32,11 +32,11 @@ public:
 
     bool loaded() const;
 
-    void setItemSurface(QQuickItem *item);
+    void setSurfaceItem(QQuickItem *item);
     QList<AppStartupInterface *> resolveInterface(int type);
 
     enum BindingProperty {
-        ItemSurface,
+        SurfaceItem,
         ResolvedInterface
     };
 

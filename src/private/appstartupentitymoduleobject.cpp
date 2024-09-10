@@ -221,8 +221,9 @@ void AppStartupEntityModuleObject::finishedLoaded()
     Q_EMIT qq->loaded(module);
 
     for (auto it = dd->reloadModulesList.begin(); it != dd->reloadModulesList.end();) {
-        dd->loadPreloadModules(*it);
+        QSharedPointer<AppStartupModuleGroup> group(*it);
         it = dd->reloadModulesList.erase(it);
+        dd->loadPreloadModules(group);
     }
 
     qDeleteAll(componentDependencyHash);
