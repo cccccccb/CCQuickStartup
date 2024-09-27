@@ -140,10 +140,14 @@ bool AppStartupPreloadModuleObject::createSurface()
     if (surfaceComponent)
         surfaceComponent->completeCreate();
 
-    if (item->isVisible()) {
+    if (_appSurfaceIsWindow) {
+        if (item->isVisible()) {
+            _q_onPreloadItemVisibleChanged();
+        } else {
+            QObject::connect(item, &QQuickItem::visibleChanged, this, &AppStartupPreloadModuleObject::_q_onPreloadItemVisibleChanged, Qt::SingleShotConnection);
+        }
+    } else if (item->isComponentComplete()) {
         _q_onPreloadItemVisibleChanged();
-    } else {
-        QObject::connect(item, &QQuickItem::visibleChanged, this, &AppStartupPreloadModuleObject::_q_onPreloadItemVisibleChanged, Qt::SingleShotConnection);
     }
 
     return true;
@@ -170,6 +174,7 @@ AppStartupPreloadModuleObject::~AppStartupPreloadModuleObject()
 {
     qDebug() << "App startup preload module destruction";
     preloadInstance = nullptr;
+    clearOverlay();
 }
 
 QQuickTransition *AppStartupPreloadModuleObject::transition()
@@ -191,7 +196,11 @@ void AppStartupPreloadModuleObject::transitionFinish()
 
     clearOverlay();
 
-    if (QQuickItem *item = binder()->contentItem()) {
+    AppStartupModuleObject *binder = this->binder();
+    if (!binder)
+        return;
+
+    if (QQuickItem *item = binder->contentItem()) {
         item->setEnabled(true);
         item->setVisible(true);
     }
@@ -293,7 +302,7 @@ void AppStartupPreloadModuleObject::createOverlay()
 
     QObject::connect(preloadItem, &AppPreloadItem::autoExitOverlayChanged, this,
                      std::bind(&AppStartupPreloadModuleObject::doOverlayAutoExitChanged, this, preloadItem));
-    doOverlayAutoExitChanged(preloadItem);
+    QMetaObject::invokeMethod(this, [this, preloadItem]() { doOverlayAutoExitChanged(preloadItem);}, Qt::QueuedConnection);
 
     QQmlContext *context = creationContext(loComponent, _containerContentItem);
     loadingOverlay = qobject_cast<QQuickItem *>(loComponent->beginCreate(context));

@@ -198,6 +198,8 @@ void AppStartupInstancePrivate::unloadModule(const QSharedPointer<AppStartupModu
     while (it != componentModuleHash.end()) {
         if (it.key() == module->preload() || it.key() == module->entity()) {
             it = componentModuleHash.erase(it);
+        } else {
+            it++;
         }
     }
 

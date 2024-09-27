@@ -62,11 +62,15 @@ void AppQmlComponentIncubator::statusChanged(QQmlIncubator::Status status)
 {
     QObject *obj = object();
     if (status != QQmlIncubator::Ready) {
-        if (status == QQmlIncubator::Error)
+        if (status == QQmlIncubator::Error) {
             qWarning() << "AppStartupInstance: " << this->errors();
+            if (obj)
+                obj->deleteLater();
+        }
         return;
     }
 
+    entityModule->_childObjects.append(obj);
     AppStartupItemAttached *itemAttached = qobject_cast<AppStartupItemAttached*>(qmlAttachedPropertiesObject<AppStartupItem>(entityModule->contentItem(), true));
     if (itemAttached) {
         QQmlContext *context = qmlContext(obj);
@@ -129,6 +133,8 @@ AppStartupEntityModuleObject::~AppStartupEntityModuleObject()
 {
     qDebug() << "App startup entity component destruction";
     entityInstance = nullptr;
+    qDeleteAll(_childObjects);
+    _childObjects.clear();
 }
 
 QQuickItem *AppStartupEntityModuleObject::transitionItem()
@@ -330,31 +336,31 @@ bool AppStartupEntityModuleObject::createObjects(const QQmlListReference &pros)
 
     copyTransitionGroupFromBinder();
     QObject *object = entityComponent->beginCreate(creationContext(entityComponent, containerItem));
-    AppStartupItem *rootItem = qobject_cast<AppStartupItem *>(object);
-    setContentItem(rootItem);
+    _rootItem.reset(qobject_cast<AppStartupItem *>(object));
+    setContentItem(_rootItem.get());
 
     if (entityComponent->isError()) {
         qWarning() << "The entity component create failed: " << entityComponent->errors();
     }
 
-    Q_ASSERT_X(rootItem, "AppStartupInstance", qPrintable("Create the AppStartupItem item failed!"));
+    Q_ASSERT_X(_rootItem, "AppStartupInstance", qPrintable("Create the AppStartupItem item failed!"));
 
-    resovleInterface(rootItem);
+    resovleInterface(_rootItem.get());
     if (QQmlContext *context = transitionGroupContextFromBinder())
-        context->setContextProperty(QLatin1String("enterTarget"), rootItem);
+        context->setContextProperty(QLatin1String("enterTarget"), _rootItem.get());
 
-    rootItem->setContainer(containerItem);
-    rootItem->setEnabled(false);
-    rootItem->setVisible(false);
+    _rootItem->setContainer(containerItem);
+    _rootItem->setEnabled(false);
+    _rootItem->setVisible(false);
 
     entityComponent->completeCreate();
 
     AppPreloadItem *preloadItem = qmlobject_cast<AppPreloadItem *>(binder()->contentItem());
     if (preloadItem) {
-        preloadItem->setStartupItem(rootItem);
+        preloadItem->setStartupItem(_rootItem.get());
     }
 
-    pros.append(rootItem);
+    pros.append(_rootItem.get());
 
     initRootItem(containerItem);
     updateRootItemSize(containerItem);

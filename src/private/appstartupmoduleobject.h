@@ -86,7 +86,7 @@ protected:
 
     bool _duringTransition = false;
     AppStartUpTransitionManager *_transitionManager = nullptr;
-    QHash<QQmlComponent *, QQmlContext *> _itemContextMap;
+    QHash<QQmlComponent *, QPointer<QQmlContext>> _itemContextMap;
     QPointer<AppStartupTransitionGroup> _transitionGroup = nullptr;
 
 private:

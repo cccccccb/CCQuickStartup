@@ -84,6 +84,7 @@ Q_SIGNALS:
     void windowChanged();
 
 private:
+    friend class AppStartupPreloadModuleObject;
     QScopedPointer<AppPreloadItemPrivate> dd;
 };
 

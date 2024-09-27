@@ -3,9 +3,10 @@
 
 #include "appstartupmoduleobject.h"
 
+#include "items/appstartupitem.h"
+
 class AppStartupComponent;
 class AppStartupEntityInterface;
-class AppStartupItem;
 
 class AppStartupEntityModuleObject : public AppStartupModuleObject
 {
@@ -57,8 +58,10 @@ private:
 
     QQmlComponent *entityComponent = nullptr;
     QList<QQmlIncubator *> incubators;
+    QList<QObject *> _childObjects;
     QVariantHash initialPropertiesHash;
     QHash<AppStartupComponent *, ComponentDependency *> componentDependencyHash;
+    QScopedPointer<AppStartupItem> _rootItem;
     int childrenCount = 0;
 };
 
