@@ -83,8 +83,8 @@ TransitionGroup {
         readonly property real opacity: 0.8
 
         readonly property QtObject transform: Rotation {
-            origin.x: enterTarget.width / 2
-            origin.y: enterTarget.height / 2
+            origin.x: enterTarget ? enterTarget.width / 2 : 0
+            origin.y: enterTarget ? enterTarget.height / 2 : 0
             axis.x: 0; axis.y: 1; axis.z: 0
             angle: enterProp._private_rotationAngle
         }
