@@ -216,14 +216,14 @@ bool AppStartupPreloadModuleObject::load()
 {
     QObject *obj = this->loadModule(this->_information.path());
     if (!obj) {
-        qFatal("Load the preload module failed!");
+        qFatal() << "Load the preload module failed, " << this->_information.path();
         return false;
     }
 
     preloadInstance = qobject_cast<AppStartupPreloadInterface *>(obj);
     if (!preloadInstance) {
         //! @todo add error
-        qFatal("Convert the preload module failed!");
+        qFatal() << "Convert the preload module failed, " << this->_information.path();
         return false;
     }
 

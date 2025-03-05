@@ -263,6 +263,7 @@ QObject *AppStartupModuleObject::loadModule(const QString &path)
     if (_loader->load())
         return _loader->instance();
 
+    qWarning() << "[Startup] load module failed: " << _loader->errorString();
     return nullptr;
 }
 
