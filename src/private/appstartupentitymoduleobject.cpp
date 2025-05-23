@@ -63,7 +63,11 @@ void AppQmlComponentIncubator::statusChanged(QQmlIncubator::Status status)
     QObject *obj = object();
     if (status != QQmlIncubator::Ready) {
         if (status == QQmlIncubator::Error) {
-            qWarning() << "AppStartupInstance: " << this->errors();
+            qWarning() << "AppStartupInstance incubator error: ";
+            for (auto error : this->errors()) {
+                qWarning().nospace() << error << "\t";
+            }
+
             if (obj)
                 obj->deleteLater();
         }
@@ -193,7 +197,11 @@ bool AppStartupEntityModuleObject::load()
                          this, &AppStartupEntityModuleObject::_q_onEntityModuleStatusChanged);
     } else {
         if (entityComponent->status() == QQmlComponent::Error) {
-            qWarning() << "AppStartupInstance: " << entityComponent->errors() << ", " << qPrintable(entityComponent->errorString());
+            qWarning() << "AppStartupInstance error: ";
+            for (auto error : entityComponent->errors()) {
+                qWarning().nospace() << error << "\t";
+            }
+            qWarning().nospace() << qPrintable(entityComponent->errorString());
             return false;
         }
 
@@ -271,8 +279,13 @@ void AppStartupEntityModuleObject::destoryIncubator(QQmlIncubator *incubator)
 void AppStartupEntityModuleObject::_q_onEntityModuleStatusChanged(QQmlComponent::Status status)
 {
     if (status != QQmlComponent::Ready) {
-        if (status == QQmlComponent::Error)
-            qWarning() << "AppStartupInstance: " << entityComponent->errors() << ", " << qPrintable(entityComponent->errorString());
+        if (status == QQmlComponent::Error) {
+            qWarning() << "AppStartupInstance error: ";
+            for (auto error : entityComponent->errors()) {
+                qWarning() << error << "\t";
+            }
+            qWarning() << qPrintable(entityComponent->errorString());
+        }
         return;
     }
 

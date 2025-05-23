@@ -313,7 +313,7 @@ void AppStartupPreloadModuleObject::createOverlay()
     }
 
     loadingOverlay->setParentItem(_containerContentItem);
-    loadingOverlay->setZ(100);
+    loadingOverlay->setZ(99);
 
     if (tgContext)
         tgContext->setContextProperty("leaveTarget", loadingOverlay);
