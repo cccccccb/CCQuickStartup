@@ -27,6 +27,7 @@ qt_add_library(CCQuickStartup
     ${DEPENDS_SOUCES_CPP}
 )
 
+qt_policy(SET QTP0001 NEW)
 qt_add_qml_module(CCQuickStartup
     URI CCStartup
     VERSION ${PROJECT_VERSION}
