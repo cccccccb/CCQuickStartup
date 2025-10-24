@@ -17,6 +17,7 @@ class CC_QUICKSTARTUP_EXPORT AppStartupModuleInformation
     Q_PROPERTY(QString changelog READ changelog CONSTANT FINAL)
     Q_PROPERTY(bool isDefault READ isDefault CONSTANT FINAL)
     Q_PROPERTY(QString path READ path CONSTANT FINAL)
+    Q_PROPERTY(QVariantMap properties READ properties CONSTANT FINAL)
 
 public:
     AppStartupModuleInformation();
@@ -65,6 +66,9 @@ public:
     QString path() const;
     void setPath(const QString &path);
 
+    QVariantMap properties() const;
+    void setProperties(const QVariantMap &properties);
+
 private:
     StartModule m_startModule;
     QString m_appId;
@@ -75,6 +79,7 @@ private:
     QString m_changelog;
     bool m_default;
     QString m_path;
+    QVariantMap m_properties;
 };
 
 inline size_t qHash(const AppStartupModuleInformation &key, size_t seed = 0) {

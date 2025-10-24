@@ -224,3 +224,16 @@ void AppStartupModuleInformation::setPath(const QString &path)
 
     m_path = path;
 }
+
+QVariantMap AppStartupModuleInformation::properties() const
+{
+    return m_properties;
+}
+
+void AppStartupModuleInformation::setProperties(const QVariantMap &properties)
+{
+    if (properties == m_properties)
+        return;
+
+    m_properties = properties;
+}

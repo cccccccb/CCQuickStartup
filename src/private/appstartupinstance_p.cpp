@@ -274,7 +274,7 @@ bool AppStartupInstancePrivate::resolveInformation(const QJsonObject &obj, AppSt
         return false;
 
     auto metaDataObject = metaDataValue.toObject();
-    auto moduleAppId = metaDataObject.value("appid").toString();
+    auto moduleAppId = metaDataObject.take("appid").toString();
     if (moduleAppId != AppStartupInstance::instance()->appId())
         return false;
 
@@ -282,17 +282,22 @@ bool AppStartupInstancePrivate::resolveInformation(const QJsonObject &obj, AppSt
                                 ? AppStartupModuleInformation::Preload
                                 : AppStartupModuleInformation::Entity);
     info->setAppId(moduleAppId);
-    info->setDescriptor(metaDataObject.value("descriptor").toString());
-    info->setVersion(metaDataObject.value("version").toString());
-    info->setDescription(metaDataObject.value("description").toString());
+    info->setDescriptor(metaDataObject.take("descriptor").toString());
+    info->setVersion(metaDataObject.take("version").toString());
+    info->setDescription(metaDataObject.take("description").toString());
     QStringList featuresList;
-    const auto &featuresArray = metaDataObject.value("features").toArray();
+    const auto &featuresArray = metaDataObject.take("features").toArray();
     for (auto featureValue : featuresArray) {
         featuresList << featureValue.toString();
     }
     info->setFeatures(featuresList);
-    info->setChangelog(metaDataObject.value("changelog").toString());
-    info->setDefault(metaDataObject.value("default").toBool());
+    info->setChangelog(metaDataObject.take("changelog").toString());
+    info->setDefault(metaDataObject.take("default").toBool());
+
+    // User custom properties
+    if (metaDataObject.isEmpty()) {
+        info->setProperties(metaDataObject.toVariantMap());
+    }
 
     return true;
 }
