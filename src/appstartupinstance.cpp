@@ -96,12 +96,12 @@ void AppStartupInstance::reload()
     dd->reloadAllModules();
 }
 
-void AppStartupInstance::load(const QSharedPointer<AppStartupModuleGroup> &module)
+bool AppStartupInstance::load(const QSharedPointer<AppStartupModuleGroup> &module)
 {
     if (!module->isValid())
-        return;
+        return false;
 
-    dd->loadPreloadModules(module);
+    return dd->loadPreloadModules(module);
 }
 
 void AppStartupInstance::unload(const QSharedPointer<AppStartupModuleGroup> &module)

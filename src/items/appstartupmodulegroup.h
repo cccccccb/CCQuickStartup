@@ -40,6 +40,8 @@ public:
         ResolvedInterface
     };
 
+    static QList<QSharedPointer<AppStartupModuleGroup>> loadFromPath(const QString &path);
+
 Q_SIGNALS:
     void loadedChanged();
 

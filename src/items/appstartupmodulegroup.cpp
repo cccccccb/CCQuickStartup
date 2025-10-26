@@ -2,7 +2,11 @@
 #include "appstartupinstance.h"
 #include "appstartupinterface.h"
 
+#include "private/appstartupinstance_p.h"
+
+#include <QDir>
 #include <QQuickItem>
+#include <QHash>
 
 class AppStartupModuleGroupPrivate
 {
@@ -14,6 +18,8 @@ public:
     typedef std::pair<AppStartupModuleInformation, AppStartupModuleInformation> Group;
     Group _group;
     QMap<AppStartupModuleGroup::BindingProperty, QVariant> _bindingProperties;
+
+
 };
 
 AppStartupModuleGroup::AppStartupModuleGroup(QObject *parent)
@@ -93,6 +99,54 @@ QList<AppStartupInterface *> AppStartupModuleGroup::resolveInterface(int type)
     return result;
 }
 
+QList<QSharedPointer<AppStartupModuleGroup>> AppStartupModuleGroup::loadFromPath(const QString &path)
+{
+    QUrl pathUrl(path);
+    if (!pathUrl.isLocalFile())
+        return {};
+
+    QDir pathDir(path);
+    if (!pathDir.exists())
+        return {};
+
+    QList<AppStartupModuleInformation> informations;
+    QList<QSharedPointer<AppStartupModuleGroup>> result;
+
+    for (const auto &entry : pathDir.entryInfoList(QDir::Files | QDir::NoSymLinks | QDir::NoDotAndDotDot)) {
+        const auto path = entry.absoluteFilePath();
+        AppStartupModuleInformation resolved;
+        if (!AppStartupInstancePrivate::resolveInformation(path, &resolved))
+            continue;
+
+        for (auto it = informations.begin(); it != informations.end(); ++it) {
+            AppStartupModuleInformation info = *it;
+
+            if (info.startModule() == resolved.startModule()
+                    || info.appId() != resolved.appId()
+                    || info.descriptor() != resolved.descriptor()
+                    || info.version() != resolved.version())
+                continue;
+
+            // is same group module
+            AppStartupModuleInformation preload = resolved, entity = info;
+            if (info.startModule() == AppStartupModuleInformation::Preload) {
+                preload = info;
+                entity = resolved;
+            }
+
+            auto module = QSharedPointer<AppStartupModuleGroup>::create(std::make_pair(preload, entity));
+            if (!module->isValid())
+                continue;
+
+            result << module;
+            informations.erase(it);
+            break;
+        }
+    }
+
+    return result;
+}
+
 QVariant AppStartupModuleGroup::bindingProperty(BindingProperty property) const
 {
     return dd->_bindingProperties.value(property);
@@ -100,10 +154,10 @@ QVariant AppStartupModuleGroup::bindingProperty(BindingProperty property) const
 
 void AppStartupModuleGroup::insertBindingProperty(BindingProperty property, QVariant value)
 {
-    dd->_bindingProperties.insert(BindingProperty::ResolvedInterface, value);
+    dd->_bindingProperties.insert(property, value);
 }
 
 void AppStartupModuleGroup::insertBindingPropertyList(BindingProperty property, QVariantList value)
 {
-    dd->_bindingProperties.insert(BindingProperty::ResolvedInterface, value);
+    dd->_bindingProperties.insert(property, value);
 }

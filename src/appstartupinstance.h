@@ -46,7 +46,7 @@ public:
     void reload();
     void scanModules();
 
-    void load(const QSharedPointer<AppStartupModuleGroup> &module);
+    bool load(const QSharedPointer<AppStartupModuleGroup> &module);
     void unload(const QSharedPointer<AppStartupModuleGroup> &module);
 
     int exec(int &argc, char **argv);
