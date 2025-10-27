@@ -225,8 +225,13 @@ void AppStartupInstancePrivate::findDefaultModuleGroup()
 void AppStartupInstancePrivate::loadEntityModules(const QSharedPointer<AppStartupModuleGroup> &module)
 {
     AppStartupModuleObject *moduleObject = moduleFactory->create(module->entity());
-    if (!moduleObject)
+    if (!moduleObject) {
+        const QString &errorString = "No entity module found when load the exist modules!";
+        qWarning() << errorString;
+
+        Q_EMIT qq->errorOccured(module, errorString);
         return;
+    }
 
     auto preloadModule = this->componentModuleHash.value(module->preload());
     if (preloadModule) {
@@ -242,15 +247,19 @@ void AppStartupInstancePrivate::loadEntityModules(const QSharedPointer<AppStartu
 bool AppStartupInstancePrivate::loadPreloadModules(const QSharedPointer<AppStartupModuleGroup> &module)
 {
     if (!module->isValid()) {
-        //! @todo add error
-        qFatal("No preload module found when load the exist modules!");
+        const QString &errorString = "No preload module found when load the exist modules!";
+        qWarning() << errorString;
+
+        Q_EMIT qq->errorOccured(module, errorString);
         return false;
     }
 
     AppStartupModuleObject *moduleObject = moduleFactory->create(module->preload());
     if (!moduleObject) {
-        //! @todo add error
-        qFatal("Create preload module failed!");
+        const QString &errorString = "Create preload module failed!";
+        qWarning() << errorString;
+
+        Q_EMIT qq->errorOccured(module, errorString);
         return false;
     }
 

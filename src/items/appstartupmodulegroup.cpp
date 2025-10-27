@@ -32,6 +32,13 @@ AppStartupModuleGroup::AppStartupModuleGroup(QObject *parent)
                 Q_EMIT this->loadedChanged();
             }
     });
+
+    connect(AppStartupInstance::instance(), &AppStartupInstance::errorOccured, this,
+            [this](const QSharedPointer<AppStartupModuleGroup> &module, const QString &errorString) {
+            if (module == this) {
+                Q_EMIT this->errorOccured(errorString);
+            }
+    });
 }
 
 AppStartupModuleGroup::AppStartupModuleGroup(std::pair<AppStartupModuleInformation, AppStartupModuleInformation> args, QObject *parent)

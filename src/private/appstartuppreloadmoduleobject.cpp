@@ -216,14 +216,19 @@ bool AppStartupPreloadModuleObject::load()
 {
     QObject *obj = this->loadModule(this->_information.path());
     if (!obj) {
-        qFatal() << "Load the preload module failed, " << this->_information.path();
+        const QString &errorString = "Load the preload module failed, " + this->_information.path();
+        qWarning() << errorString;
+
+        Q_EMIT qq->errorOccured(group(), errorString);
         return false;
     }
 
     preloadInstance = qobject_cast<AppStartupPreloadInterface *>(obj);
     if (!preloadInstance) {
-        //! @todo add error
-        qFatal() << "Convert the preload module failed, " << this->_information.path();
+        const QString &errorString = "Convert the preload module failed, " + this->_information.path();
+        qWarning() << errorString;
+
+        Q_EMIT qq->errorOccured(group(), errorString);
         return false;
     }
 
@@ -232,7 +237,10 @@ bool AppStartupPreloadModuleObject::load()
                      this, &AppStartupPreloadModuleObject::_q_onPreloadCreated, Qt::SingleShotConnection);
     dd->engine->load(preloadInstance->preloadModulePath());
     if (dd->engine->rootObjects().isEmpty()) {
-        qWarning() << "No root object created!";
+        const QString &errorString = "No root object created!";
+        qWarning() << errorString;
+
+        Q_EMIT qq->errorOccured(group(), errorString);
         return false;
     }
 
@@ -241,14 +249,27 @@ bool AppStartupPreloadModuleObject::load()
 
 void AppStartupPreloadModuleObject::_q_onPreloadCreated(QObject *obj, const QUrl &objUrl)
 {
-    if (objUrl.isLocalFile() && QFileInfo(objUrl.toString()) != QFileInfo(preloadInstance->preloadModulePath().toString()))
-         return;
+    if (objUrl.isLocalFile() && QFileInfo(objUrl.toString()) != QFileInfo(preloadInstance->preloadModulePath().toString())) {
+        const QString &errorString = QString("Preload module path [%1] is invalid!").arg(objUrl.toString());
+        qWarning() << errorString;
 
-    if (objUrl != preloadInstance->preloadModulePath() && QFileInfo(objUrl.toString()) != QFileInfo(preloadInstance->preloadModulePath().toString()))
+        Q_EMIT qq->errorOccured(group(), errorString);
         return;
+    }
+
+    if (objUrl != preloadInstance->preloadModulePath() && QFileInfo(objUrl.toString()) != QFileInfo(preloadInstance->preloadModulePath().toString())) {
+        const QString &errorString = QString("Preload module path [%1] is invalid!").arg(objUrl.toString());
+        qWarning() << errorString;
+
+        Q_EMIT qq->errorOccured(group(), errorString);
+        return;
+    }
 
     if (!obj) {
-        qWarning() << "Create module preload failed!";
+        const QString &errorString = "Create module preload failed!";
+        qWarning() << errorString;
+
+        Q_EMIT qq->errorOccured(group(), errorString);
         return;
     }
 
@@ -256,7 +277,10 @@ void AppStartupPreloadModuleObject::_q_onPreloadCreated(QObject *obj, const QUrl
     Q_ASSERT_X(contentItem(), "AppPreloadItem", "Preload root item only use the AppPreloadItem item!");
 
     if (!createSurface()) {
-        qWarning() << "Create module preload surface failed!";
+        const QString &errorString = "Create module preload surface failed!";
+        qWarning() << errorString;
+
+        Q_EMIT qq->errorOccured(group(), errorString);
         return;
     }
 

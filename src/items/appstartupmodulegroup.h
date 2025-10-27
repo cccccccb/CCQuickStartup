@@ -44,6 +44,7 @@ public:
 
 Q_SIGNALS:
     void loadedChanged();
+    void errorOccured(const QString &errorString);
 
 protected:
     QVariant bindingProperty(BindingProperty property) const;

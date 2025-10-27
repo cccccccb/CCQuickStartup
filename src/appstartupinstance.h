@@ -55,6 +55,7 @@ public:
 Q_SIGNALS:
     void loaded(const QSharedPointer<AppStartupModuleGroup> &module);
     void unloaded(const QSharedPointer<AppStartupModuleGroup> &module);
+    void errorOccured(const QSharedPointer<AppStartupModuleGroup> &module, const QString &errorString);
     void availableModulesChanged();
 
 private:

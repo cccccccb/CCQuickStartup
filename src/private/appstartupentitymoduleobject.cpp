@@ -63,10 +63,15 @@ void AppQmlComponentIncubator::statusChanged(QQmlIncubator::Status status)
     QObject *obj = object();
     if (status != QQmlIncubator::Ready) {
         if (status == QQmlIncubator::Error) {
-            qWarning() << "AppStartupInstance incubator error: ";
+            QString errorString = "AppStartupInstance incubator error: ";
             for (auto error : this->errors()) {
-                qWarning().nospace() << error << "\t";
+                errorString += error.toString();
+                errorString += "\t";
             }
+
+            qWarning() << errorString;
+
+            Q_EMIT entityModule->qq->errorOccured(entityModule->group(), errorString);
 
             if (obj)
                 obj->deleteLater();
@@ -177,14 +182,19 @@ bool AppStartupEntityModuleObject::load()
 {
     QObject *obj = this->loadModule(this->_information.path());
     if (!obj) {
-        qFatal("Load the entity module failed!");
+        const QString &errorString = "Load the entity module failed!";
+        qWarning() << errorString;
+
+        Q_EMIT qq->errorOccured(group(), errorString);
         return false;
     }
 
     entityInstance = qobject_cast<AppStartupEntityInterface *>(obj);
     if (!entityInstance) {
-        //! @todo add error
-        qFatal("Convert the entity module failed!");
+        const QString &errorString = "Convert the entity module failed!";
+        qWarning() << errorString;
+
+        Q_EMIT qq->errorOccured(group(), errorString);
         return false;
     }
 
@@ -197,11 +207,16 @@ bool AppStartupEntityModuleObject::load()
                          this, &AppStartupEntityModuleObject::_q_onEntityModuleStatusChanged);
     } else {
         if (entityComponent->status() == QQmlComponent::Error) {
-            qWarning() << "AppStartupInstance error: ";
+            QString errorString = "AppStartupInstance error: ";
             for (auto error : entityComponent->errors()) {
-                qWarning().nospace() << error << "\t";
+                errorString += error.toString();
+                errorString += "\t";
             }
-            qWarning().nospace() << qPrintable(entityComponent->errorString());
+            errorString += qPrintable(entityComponent->errorString());
+
+            qWarning().nospace() << errorString;
+
+            Q_EMIT qq->errorOccured(group(), errorString);
             return false;
         }
 
@@ -230,7 +245,7 @@ void AppStartupEntityModuleObject::finishedLoaded()
 
     rootItem->setFocus(true);
 
-    QSharedPointer<AppStartupModuleGroup> module(new AppStartupModuleGroup({binder()->information(), this->information()}, qq));
+    QSharedPointer<AppStartupModuleGroup> module = group();
     dd->loadedModulesList += module;
     Q_EMIT qq->loaded(module);
 
@@ -280,11 +295,16 @@ void AppStartupEntityModuleObject::_q_onEntityModuleStatusChanged(QQmlComponent:
 {
     if (status != QQmlComponent::Ready) {
         if (status == QQmlComponent::Error) {
-            qWarning() << "AppStartupInstance error: ";
+            QString errorString = "AppStartupInstance error: ";
             for (auto error : entityComponent->errors()) {
-                qWarning() << error << "\t";
+                errorString += error.toString();
+                errorString += "\t";
             }
-            qWarning() << qPrintable(entityComponent->errorString());
+            errorString += qPrintable(entityComponent->errorString());
+
+            qWarning().nospace() << errorString;
+
+            Q_EMIT qq->errorOccured(group(), errorString);
         }
         return;
     }
@@ -297,7 +317,10 @@ void AppStartupEntityModuleObject::_q_onEntityModuleStatusChanged(QQmlComponent:
 
     bool success = createObjects(ref);
     if (!success) {
-        qWarning() << "Create entity objects failed!";
+        const QString &errorString = "Create entity objects failed!";
+        qWarning() << errorString;
+
+        Q_EMIT qq->errorOccured(group(), errorString);
     }
 
     entityComponent->deleteLater();
@@ -425,20 +448,26 @@ void AppStartupEntityModuleObject::createChildComponents()
     // find the non dependency component
     QVector<AppStartupComponent *> components;
     std::for_each(componentDependencyHash.keyValueBegin(), componentDependencyHash.keyValueEnd(),
-                                    [&components](std::pair<AppStartupComponent *, ComponentDependency *> keyValuePair) {
+                                    [&components, this](std::pair<AppStartupComponent *, ComponentDependency *> keyValuePair) {
         if (keyValuePair.second->dependsOn.isEmpty()) {
             components << keyValuePair.first;
         }
 
         auto intersected = keyValuePair.second->dependsOn.intersect(keyValuePair.second->beingDepends);
         if (!intersected.isEmpty()) {
-            qFatal() << "[App Startup] component depends loop: " << intersected << ", with " << keyValuePair.first;
+            const QString &errorString = "[App Startup] component depends loop";
+            qWarning() << errorString;
+
+            Q_EMIT qq->errorOccured(group(), errorString);
             return;
         }
     });
 
     if (components.isEmpty()) {
-        qFatal() << "[App Startup]  component is empty or component depends loop!";
+        const QString &errorString = "[App Startup]  component is empty or component depends loop!";
+        qWarning() << errorString;
+
+        Q_EMIT qq->errorOccured(group(), errorString);
         return;
     }
 
