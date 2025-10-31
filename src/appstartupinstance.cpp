@@ -123,13 +123,14 @@ int AppStartupInstance::exec(int &argc, char **argv)
     addModulePath(dd->app->applicationDirPath() + QLatin1String("/modules"));
 
     dd->scanModules();
-    dd->reloadModulesList = dd->availableModules;
-    if (dd->reloadModulesList.empty()) {
-        qFatal("No available modules found!");
+    dd->findDefaultModuleGroup();
+
+    if (!dd->defaultModuleGroup->isValid()) {
+        qFatal("No default modules found!");
         return -1;
     }
 
-    if (!dd->reloadAllModules())
+    if (!dd->loadPreloadModules(dd->defaultModuleGroup))
         return -1;
 
     return dd->app->exec();

@@ -21,6 +21,8 @@ public:
     explicit AppStartupModuleGroup(QObject *parent = nullptr);
     AppStartupModuleGroup(std::pair<AppStartupModuleInformation, AppStartupModuleInformation> args, QObject *parent = nullptr);
     ~AppStartupModuleGroup();
+    bool operator==(const AppStartupModuleGroup &other) const;
+    bool operator!=(const AppStartupModuleGroup &other) const;
 
     bool isValid() const;
 

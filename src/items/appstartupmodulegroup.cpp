@@ -52,6 +52,18 @@ AppStartupModuleGroup::~AppStartupModuleGroup()
 
 }
 
+bool AppStartupModuleGroup::operator==(const AppStartupModuleGroup &other) const
+{
+    return isValid() ? (other.preload() == this->preload()
+                        && other.entity() == this->entity())
+                     : true;
+}
+
+bool AppStartupModuleGroup::operator!=(const AppStartupModuleGroup &other) const
+{
+    return !(this->operator==(other));
+}
+
 bool AppStartupModuleGroup::isValid() const
 {
     return dd->_group.first.isValid() && dd->_group.second.isValid();
@@ -119,12 +131,14 @@ QList<QSharedPointer<AppStartupModuleGroup>> AppStartupModuleGroup::loadFromPath
     QList<AppStartupModuleInformation> informations;
     QList<QSharedPointer<AppStartupModuleGroup>> result;
 
-    for (const auto &entry : pathDir.entryInfoList(QDir::Files | QDir::NoSymLinks | QDir::NoDotAndDotDot)) {
+    const auto &entryList = pathDir.entryInfoList(QDir::Files | QDir::NoSymLinks | QDir::NoDotAndDotDot);
+    for (const auto &entry : entryList) {
         const auto path = entry.absoluteFilePath();
         AppStartupModuleInformation resolved;
         if (!AppStartupInstancePrivate::resolveInformation(path, &resolved))
             continue;
 
+        informations << resolved;
         for (auto it = informations.begin(); it != informations.end(); ++it) {
             AppStartupModuleInformation info = *it;
 

@@ -12,6 +12,7 @@ file(GLOB EXTENSION_SOURCE_H "items/*.h")
 
 set(EXTENSION_SOURCE_QML
     "qml/transition/FlickTransition.qml"
+    "qml/transition/ScaleTransition.qml"
 )
 
 set(EXTENSION_PRIVATE_SOURCE_QML

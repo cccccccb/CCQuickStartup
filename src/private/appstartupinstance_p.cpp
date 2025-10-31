@@ -61,13 +61,6 @@ void AppStartupInstancePrivate::scanModules()
     // scan the static modules
     modules += scanStaticModules();
 
-    std::sort(modules.begin(), modules.end(),
-              [](const AppStartupModuleInformation &before, const AppStartupModuleInformation &after) {
-        return before.startModule() < after.startModule()
-               || before.descriptor() < after.descriptor()
-               || before.version() < after.version();
-    });
-
     detachAvailableModulesChange(modules);
 }
 
@@ -120,40 +113,60 @@ QList<AppStartupModuleInformation> AppStartupInstancePrivate::scanStaticModules(
 
 void AppStartupInstancePrivate::detachAvailableModulesChange(const QList<AppStartupModuleInformation> &modules)
 {
-    QList<QSharedPointer<AppStartupModuleGroup>> groupList;
     bool availableChanged = false;
+    QHash<QString, QList<AppStartupModuleInformation>> groups;
+    QList<QSharedPointer<AppStartupModuleGroup>> groupList;
 
-    int left = 0;
-    int rightLimit = -1;
-    while (left < modules.size() - 1) {
-        if ((left > 0 && (modules[left].startModule() != modules[left - 1].startModule())))
-            break;
+    for (const auto &module : modules) {
+        QString descriptor = module.descriptor();
+        groups[descriptor].append(module);
+    }
 
-        if (modules[left].startModule() == modules[left + 1].startModule()
-            && modules[left].descriptor() == modules[left + 1].descriptor()) {
-            left++;
-            continue;
+    for (auto it = groups.begin(); it != groups.end(); ++it) {
+        QSet<AppStartupModuleInformation> preloadInfors;
+        QSet<AppStartupModuleInformation> entityInfors;
+
+        for (auto descrpInfo : it.value()) {
+            if (descrpInfo.startModule() == AppStartupModuleInformation::Preload)
+                preloadInfors.insert(descrpInfo);
+
+            if (descrpInfo.startModule() == AppStartupModuleInformation::Entity)
+                entityInfors.insert(descrpInfo);
         }
 
-        int right = modules.size() - 1;
-        while ((rightLimit >= 0 ? (right < rightLimit)
-                                : (modules[right].startModule() != modules[left].startModule()))
-               && modules[right].descriptor() != modules[left].descriptor()) {
-            right--;
-        }
+        auto preloadIt = preloadInfors.begin();
+        auto entityIt = entityInfors.begin();
 
-        const QString &desciptor = modules[right].descriptor();
-        if (desciptor == modules[left].descriptor()) {
-            QSharedPointer<AppStartupModuleGroup> group(new AppStartupModuleGroup({modules[left], modules[right]}, qq));
-            if (!availableChanged && !availableModules.contains(group)) {
-                availableChanged = true;
+        while (preloadIt != preloadInfors.end() || entityIt != entityInfors.end()) {
+            while (preloadIt != preloadInfors.end() && preloadIt->version() < entityIt->version()) {
+                ++preloadIt;
             }
 
-            groupList.append(group);
-            rightLimit = right;
-        }
+            while (entityIt != entityInfors.end() && entityIt->version() < preloadIt->version()) {
+                ++preloadIt;
+            }
 
-        left++;
+            if (preloadIt->version() == entityIt->version()) {
+                QSharedPointer<AppStartupModuleGroup> group(new AppStartupModuleGroup({*preloadIt, *entityIt}, qq));
+
+                bool contains = std::any_of(availableModules.begin(), availableModules.end(),
+                                            [group](const QSharedPointer<AppStartupModuleGroup> &module) {
+                        return *module == *group;
+                });
+
+                groupList << group;
+
+                if (!availableChanged && !contains) {
+                    availableChanged = true;
+                }
+
+                if (preloadIt != preloadInfors.end())
+                    preloadIt++;
+
+                if (entityIt != entityInfors.end())
+                    entityIt++;
+            }
+        }
     }
 
     if (availableChanged || groupList.size() != availableModules.size()) {
@@ -210,7 +223,7 @@ void AppStartupInstancePrivate::unloadModule(const QSharedPointer<AppStartupModu
 void AppStartupInstancePrivate::findDefaultModuleGroup()
 {
     QSharedPointer<AppStartupModuleGroup> moduleGroup;
-    for (const auto &group : reloadModulesList) {
+    for (const auto &group : availableModules) {
         if (!group->isValid() || !group->preload().isDefault() || !group->entity().isDefault())
             continue;
 
@@ -218,7 +231,7 @@ void AppStartupInstancePrivate::findDefaultModuleGroup()
             moduleGroup = group;
     }
 
-    if (moduleGroup->isValid())
+    if (moduleGroup && moduleGroup->isValid())
         this->defaultModuleGroup = moduleGroup;
 }
 
