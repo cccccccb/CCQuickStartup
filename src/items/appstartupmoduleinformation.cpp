@@ -31,6 +31,7 @@ AppStartupModuleInformation::AppStartupModuleInformation(const AppStartupModuleI
     this->m_changelog = other.m_changelog;
     this->m_default = other.m_default;
     this->m_path = other.m_path;
+    this->m_properties = other.m_properties;
 }
 
 AppStartupModuleInformation::AppStartupModuleInformation(AppStartupModuleInformation &other)
@@ -44,6 +45,7 @@ AppStartupModuleInformation::AppStartupModuleInformation(AppStartupModuleInforma
     this->m_changelog = other.m_changelog;
     this->m_default = other.m_default;
     this->m_path = other.m_path;
+    this->m_properties = other.m_properties;
 }
 
 AppStartupModuleInformation::AppStartupModuleInformation(AppStartupModuleInformation &&other)
@@ -57,6 +59,7 @@ AppStartupModuleInformation::AppStartupModuleInformation(AppStartupModuleInforma
     this->m_changelog = std::move(other.m_changelog);
     this->m_default = std::move(other.m_default);
     this->m_path = std::move(other.m_path);
+    this->m_properties = std::move(other.m_properties);
 }
 
 AppStartupModuleInformation &AppStartupModuleInformation::operator=(const AppStartupModuleInformation &other)
@@ -70,6 +73,7 @@ AppStartupModuleInformation &AppStartupModuleInformation::operator=(const AppSta
     this->m_changelog = other.m_changelog;
     this->m_default = other.m_default;
     this->m_path = other.m_path;
+    this->m_properties = other.m_properties;
 
     return *this;
 }
@@ -99,6 +103,7 @@ AppStartupModuleInformation &AppStartupModuleInformation::operator=(AppStartupMo
     this->m_changelog = std::move(other.m_changelog);
     this->m_default = std::move(other.m_default);
     this->m_path = std::move(other.m_path);
+    this->m_properties = std::move(other.m_properties);
 
     return *this;
 }

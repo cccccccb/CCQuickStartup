@@ -317,7 +317,7 @@ bool AppStartupInstancePrivate::resolveInformation(const QJsonObject &obj, AppSt
     info->setDefault(metaDataObject.take("default").toBool());
 
     // User custom properties
-    if (metaDataObject.isEmpty()) {
+    if (!metaDataObject.isEmpty()) {
         info->setProperties(metaDataObject.toVariantMap());
     }
 
