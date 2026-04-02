@@ -19,7 +19,8 @@ public:
     Group _group;
     QMap<AppStartupModuleGroup::BindingProperty, QVariant> _bindingProperties;
 
-
+    AppStartupModuleGroup::Status _status = AppStartupModuleGroup::Idle;
+    QString _errorString;
 };
 
 AppStartupModuleGroup::AppStartupModuleGroup(QObject *parent)
@@ -89,9 +90,40 @@ void AppStartupModuleGroup::setEntity(const AppStartupModuleInformation &entity)
     dd->_group.second = entity;
 }
 
+AppStartupModuleGroup::Status AppStartupModuleGroup::status() const
+{
+    return dd->_status;
+}
+
+void AppStartupModuleGroup::setStatus(Status status)
+{
+    if (dd->_status == status)
+        return;
+
+    dd->_status = status;
+    Q_EMIT statusChanged();
+
+    if (status == Ready) {
+        Q_EMIT loadedChanged();
+    }
+}
+
+QString AppStartupModuleGroup::errorString() const
+{
+    return dd->_errorString;
+}
+
+void AppStartupModuleGroup::setError(const QString &errorString)
+{
+    dd->_errorString = errorString;
+    setStatus(Error);
+    Q_EMIT errorStringChanged();
+    Q_EMIT errorOccured(errorString);
+}
+
 bool AppStartupModuleGroup::loaded() const
 {
-    return AppStartupInstance::instance()->loadedModules().contains(this);
+    return dd->_status == Ready;
 }
 
 void AppStartupModuleGroup::setSurfaceItem(QQuickItem *item)

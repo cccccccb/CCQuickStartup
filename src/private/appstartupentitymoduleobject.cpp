@@ -1,6 +1,7 @@
 #include "appstartupentitymoduleobject.h"
 #include "appstartupcomponent.h"
 #include "appstartupinstance_p.h"
+#include "appstartupdependencyresolver.h"
 #include "defines_p.h"
 
 #include "interface/appstartupentityinterface.h"
@@ -407,72 +408,108 @@ bool AppStartupEntityModuleObject::createObjects(const QQmlListReference &pros)
 void AppStartupEntityModuleObject::createChildComponents()
 {
     AppStartupItem *rootItem = appRootItem();
+    if (!rootItem)
+        return;
 
+    // -------------------------------------------------------
+    // 收集所有 AppStartupComponent 对象
+    // -------------------------------------------------------
+    QList<AppStartupComponent *> allComponents;
     auto objects = rootItem->objects().toList<QList<QObject *>>();
-    std::for_each(objects.begin(), objects.end(), [this](QObject *obj) {
+
+    for (QObject *obj : objects) {
         if (AppStartupComponent *component = qobject_cast<AppStartupComponent *>(obj)) {
-            auto dependsOn = qmlListPropertyToSet<AppStartupComponent *>(component->depends());
-            ComponentDependency *dependency = nullptr;
-            if (componentDependencyHash.contains(component)) {
-                dependency = componentDependencyHash.value(component);
-            } else {
-                dependency = new ComponentDependency();
-            }
-
-            for (auto depends : dependsOn)
-                dependency->dependsOn << depends;
-
-            componentDependencyHash.insert(component, dependency);
-
-            for (auto dependsComponent : dependsOn) {
-                ComponentDependency *dependency = nullptr;
-                if (componentDependencyHash.contains(dependsComponent)) {
-                    dependency = componentDependencyHash.value(dependsComponent);
-                } else {
-                    dependency = new ComponentDependency();
-                }
-
-                dependency->beingDepends << component;
-                componentDependencyHash.insert(dependsComponent, dependency);
-            }
+            allComponents.append(component);
         }
-    });
+    }
 
-    childrenCount = componentDependencyHash.size();
-
+    childrenCount = allComponents.size();
     if (childrenCount == 0) {
         finishedLoaded();
         return;
     }
 
-    // find the non dependency component
-    QVector<AppStartupComponent *> components;
-    std::for_each(componentDependencyHash.keyValueBegin(), componentDependencyHash.keyValueEnd(),
-                                    [&components, this](std::pair<AppStartupComponent *, ComponentDependency *> keyValuePair) {
-        if (keyValuePair.second->dependsOn.isEmpty()) {
-            components << keyValuePair.first;
+    // -------------------------------------------------------
+    // 使用 DependencyResolver 进行拓扑排序和健康检查
+    // -------------------------------------------------------
+    auto result = AppStartupDependencyResolver::resolve(allComponents);
+
+    // -------------------------------------------------------
+    // 错误处理：如果有环或依赖丢失，立即终止
+    // -------------------------------------------------------
+    if (!result.success) {
+        QString finalError = QString("[AppStartup] Dependency Error: %1").arg(result.errorString);
+
+        // 如果有循环链，打印出来辅助调试
+        if (!result.circularChain.isEmpty()) {
+            QString chainStr;
+            for (auto comp : result.circularChain) {
+                chainStr += (comp->objectName().isEmpty() ? "Unnamed" : comp->objectName()) + " -> ";
+            }
+            finalError += QString(" | Cycle Chain: %1").arg(chainStr);
         }
 
-        auto intersected = keyValuePair.second->dependsOn.intersect(keyValuePair.second->beingDepends);
-        if (!intersected.isEmpty()) {
-            const QString &errorString = "[App Startup] component depends loop";
-            qWarning() << errorString;
+        qCritical() << qPrintable(finalError);
 
-            Q_EMIT qq->errorOccured(group(), errorString);
-            return;
-        }
-    });
-
-    if (components.isEmpty()) {
-        const QString &errorString = "[App Startup]  component is empty or component depends loop!";
-        qWarning() << errorString;
-
-        Q_EMIT qq->errorOccured(group(), errorString);
+        // 发送错误信号通知外部（配合后续的错误状态机）
+        Q_EMIT qq->errorOccured(group(), finalError);
         return;
     }
 
-    for (auto childCom : std::as_const(components)) {
-        createComponnet(childCom);
+    // -------------------------------------------------------
+    // 重建 ComponentDependencyHash (运行时桥接)
+    // -------------------------------------------------------
+    // 虽然 Resolver 已经排好了序，但我们的 Incubator 是异步回调机制。
+    // 当一个组件加载完 (statusChanged)，它需要查询 hash 表来通知依赖它的组件。
+    // 所以我们需要把 DependencyResolver 验证过的关系填回 hash 表。
+
+    // 清理旧数据（防御性编程）
+    qDeleteAll(componentDependencyHash);
+    componentDependencyHash.clear();
+
+    for (auto component : allComponents) {
+        // 获取或创建当前组件的依赖结构
+        ComponentDependency *dependency = nullptr;
+        if (componentDependencyHash.contains(component)) {
+            dependency = componentDependencyHash.value(component);
+        } else {
+            dependency = new ComponentDependency();
+            componentDependencyHash.insert(component, dependency);
+        }
+
+        // 记录它依赖谁 (dependsOn)
+        // 注意：这里我们重新读取 depends 属性，因为之前 Resolver 已经验证过这些依赖是合法的
+        QQmlListProperty<AppStartupComponent> dependsProp = component->depends();
+        qsizetype count = dependsProp.count(&dependsProp);
+        for (qsizetype i = 0; i < count; ++i) {
+            AppStartupComponent *target = dependsProp.at(&dependsProp, i);
+            if (target) {
+                dependency->dependsOn.insert(target);
+
+                // 同时记录反向关系：target 被 component 依赖 (beingDepends)
+                ComponentDependency *targetDependency = nullptr;
+                if (componentDependencyHash.contains(target)) {
+                    targetDependency = componentDependencyHash.value(target);
+                } else {
+                    targetDependency = new ComponentDependency();
+                    componentDependencyHash.insert(target, targetDependency);
+                }
+                targetDependency->beingDepends.insert(component);
+            }
+        }
+    }
+
+    if (!result.batches.isEmpty()) {
+        const QList<AppStartupComponent*> &layer0 = result.batches.first();
+
+        qInfo() << "[AppStartup] Starting incubation batch 0 with" << layer0.size() << "components.";
+
+        for (auto component : layer0) {
+            createComponnet(component);
+        }
+    } else {
+        // 理论上不可能进这里，除非 component 列表为空但 childrenCount > 0
+        finishedLoaded();
     }
 }
 

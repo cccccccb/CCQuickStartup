@@ -9,6 +9,6 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Gui Qml Quick)
 qt_standard_project_setup()
 
 add_subdirectory(src)
-if(BUILD_EXAMPLES)
+# if(BUILD_EXAMPLES)
     add_subdirectory(examples)
-endif()
+# endif()
