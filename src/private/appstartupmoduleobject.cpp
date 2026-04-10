@@ -95,6 +95,11 @@ AppStartupModuleInformation AppStartupModuleObject::information() const
     return _information;
 }
 
+QPointer<QQuickItem> AppStartupModuleObject::appSurfaceItem() const
+{
+    return _appSurfaceIsWindow ? nullptr : _surfacePointer.appSurfaceItem;
+}
+
 QSharedPointer<AppStartupModuleGroup> AppStartupModuleObject::group() const
 {
     return _group;

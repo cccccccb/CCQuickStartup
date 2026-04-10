@@ -268,7 +268,7 @@ void AppStartupEntityModuleObject::endOfTransition()
         rootItem->setEnabled(true);
         rootItem->setFocus(true);
         rootItem->setVisible(true);
-        rootItem->setPopulate(true);
+        updateSurfacePopulate(rootItem);
     }
 }
 
@@ -341,6 +341,15 @@ void AppStartupEntityModuleObject::_q_onComponentProgressChanged()
     rootItem->setProgress(progress / components.count());
 }
 
+void AppStartupEntityModuleObject::_q_onRootSurfaceItemPopulatedChanged(AppStartupItem *surfaceRootItem)
+{
+    AppStartupItem *rootItem = appRootItem();
+
+    if (surfaceRootItem->populate()) {
+        rootItem->setPopulate(true);
+    }
+}
+
 void AppStartupEntityModuleObject::resovleInterface(AppStartupItem *rootItem)
 {
     if (!rootItem)
@@ -411,9 +420,6 @@ void AppStartupEntityModuleObject::createChildComponents()
     if (!rootItem)
         return;
 
-    // -------------------------------------------------------
-    // 收集所有 AppStartupComponent 对象
-    // -------------------------------------------------------
     QList<AppStartupComponent *> allComponents;
     auto objects = rootItem->objects().toList<QList<QObject *>>();
 
@@ -429,18 +435,11 @@ void AppStartupEntityModuleObject::createChildComponents()
         return;
     }
 
-    // -------------------------------------------------------
-    // 使用 DependencyResolver 进行拓扑排序和健康检查
-    // -------------------------------------------------------
     auto result = AppStartupDependencyResolver::resolve(allComponents);
 
-    // -------------------------------------------------------
-    // 错误处理：如果有环或依赖丢失，立即终止
-    // -------------------------------------------------------
     if (!result.success) {
         QString finalError = QString("[AppStartup] Dependency Error: %1").arg(result.errorString);
 
-        // 如果有循环链，打印出来辅助调试
         if (!result.circularChain.isEmpty()) {
             QString chainStr;
             for (auto comp : result.circularChain) {
@@ -451,24 +450,14 @@ void AppStartupEntityModuleObject::createChildComponents()
 
         qCritical() << qPrintable(finalError);
 
-        // 发送错误信号通知外部（配合后续的错误状态机）
         Q_EMIT qq->errorOccured(group(), finalError);
         return;
     }
 
-    // -------------------------------------------------------
-    // 重建 ComponentDependencyHash (运行时桥接)
-    // -------------------------------------------------------
-    // 虽然 Resolver 已经排好了序，但我们的 Incubator 是异步回调机制。
-    // 当一个组件加载完 (statusChanged)，它需要查询 hash 表来通知依赖它的组件。
-    // 所以我们需要把 DependencyResolver 验证过的关系填回 hash 表。
-
-    // 清理旧数据（防御性编程）
     qDeleteAll(componentDependencyHash);
     componentDependencyHash.clear();
 
     for (auto component : allComponents) {
-        // 获取或创建当前组件的依赖结构
         ComponentDependency *dependency = nullptr;
         if (componentDependencyHash.contains(component)) {
             dependency = componentDependencyHash.value(component);
@@ -477,8 +466,6 @@ void AppStartupEntityModuleObject::createChildComponents()
             componentDependencyHash.insert(component, dependency);
         }
 
-        // 记录它依赖谁 (dependsOn)
-        // 注意：这里我们重新读取 depends 属性，因为之前 Resolver 已经验证过这些依赖是合法的
         QQmlListProperty<AppStartupComponent> dependsProp = component->depends();
         qsizetype count = dependsProp.count(&dependsProp);
         for (qsizetype i = 0; i < count; ++i) {
@@ -486,7 +473,6 @@ void AppStartupEntityModuleObject::createChildComponents()
             if (target) {
                 dependency->dependsOn.insert(target);
 
-                // 同时记录反向关系：target 被 component 依赖 (beingDepends)
                 ComponentDependency *targetDependency = nullptr;
                 if (componentDependencyHash.contains(target)) {
                     targetDependency = componentDependencyHash.value(target);
@@ -508,7 +494,6 @@ void AppStartupEntityModuleObject::createChildComponents()
             createComponnet(component);
         }
     } else {
-        // 理论上不可能进这里，除非 component 列表为空但 childrenCount > 0
         finishedLoaded();
     }
 }
@@ -538,6 +523,26 @@ QQmlListReference AppStartupEntityModuleObject::findWindowDefaultDataRef()
 
     pros = QQmlListReference(window, WINDOW_OR_ITEM_CONTENTDATA);
     return pros;
+}
+
+void AppStartupEntityModuleObject::updateSurfacePopulate(AppStartupItem *rootItem)
+{
+    if (auto surfaceItem = binder()->appSurfaceItem()) {
+        // surface item need to wait until the root startup item finished
+        AppStartupItemAttached *attached = qobject_cast<AppStartupItemAttached*>(qmlAttachedPropertiesObject<AppStartupItem>(surfaceItem, true));
+        if (attached && attached->startupItem()) {
+            AppStartupItem *surfaceRootItem = attached->startupItem();
+            if (!surfaceRootItem || surfaceRootItem->populate()) {
+                rootItem->setPopulate(true);
+            } else {
+                QObject::connect(surfaceRootItem, &AppStartupItem::populateChanged, rootItem, std::bind(&AppStartupEntityModuleObject::_q_onRootSurfaceItemPopulatedChanged, this, surfaceRootItem), Qt::SingleShotConnection);
+            }
+        } else {
+            rootItem->setPopulate(true);
+        }
+    } else {
+        rootItem->setPopulate(true);
+    }
 }
 
 void AppStartupEntityModuleObject::updateRootItemSize(QQuickItem *item)

@@ -33,6 +33,7 @@ protected:
 private Q_SLOTS:
     void _q_onEntityModuleStatusChanged(QQmlComponent::Status status);
     void _q_onComponentProgressChanged();
+    void _q_onRootSurfaceItemPopulatedChanged(AppStartupItem *surfaceRootItem);
 
 private:
     void resovleInterface(AppStartupItem *rootItem);
@@ -40,6 +41,7 @@ private:
     void createChildComponents();
     void createComponnet(AppStartupComponent *component);
     QQmlListReference findWindowDefaultDataRef();
+    void updateSurfacePopulate(AppStartupItem *rootItem);
 
     struct ComponentDependency
     {

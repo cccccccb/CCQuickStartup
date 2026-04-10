@@ -125,7 +125,7 @@ int AppStartupInstance::exec(int &argc, char **argv)
     dd->scanModules();
     dd->findDefaultModuleGroup();
 
-    if (!dd->defaultModuleGroup->isValid()) {
+    if (dd->defaultModuleGroup.isNull() || !dd->defaultModuleGroup->isValid()) {
         qFatal("No default modules found!");
         return -1;
     }

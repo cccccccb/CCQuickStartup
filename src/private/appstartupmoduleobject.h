@@ -29,6 +29,8 @@ public:
 
     AppStartupModuleInformation information() const;
 
+    QPointer<QQuickItem> appSurfaceItem() const;
+
     QSharedPointer<AppStartupModuleGroup> group() const;
     void setGroup(const QSharedPointer<AppStartupModuleGroup> &group);
     QVariant moduleBindingProperty(AppStartupModuleGroup::BindingProperty type);
