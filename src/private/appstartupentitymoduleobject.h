@@ -63,6 +63,7 @@ private:
     QList<QObject *> _childObjects;
     QVariantHash initialPropertiesHash;
     QHash<AppStartupComponent *, ComponentDependency *> componentDependencyHash;
+    QSet<AppStartupComponent *> m_startedComponents;
     QScopedPointer<AppStartupItem> _rootItem;
     int childrenCount = 0;
 };

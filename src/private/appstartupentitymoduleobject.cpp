@@ -229,6 +229,7 @@ bool AppStartupEntityModuleObject::load()
 
 void AppStartupEntityModuleObject::finishedLoaded()
 {
+    m_startedComponents.clear();
     AppStartupItem *rootItem = appRootItem();
     entityInstance->finishedLoading(dd->engine.get());
     rootItem->setLoaded(true);
@@ -420,6 +421,7 @@ void AppStartupEntityModuleObject::createChildComponents()
     if (!rootItem)
         return;
 
+    m_startedComponents.clear();
     QList<AppStartupComponent *> allComponents;
     auto objects = rootItem->objects().toList<QList<QObject *>>();
 
@@ -500,6 +502,11 @@ void AppStartupEntityModuleObject::createChildComponents()
 
 void AppStartupEntityModuleObject::createComponnet(AppStartupComponent *component)
 {
+    if (m_startedComponents.contains(component)) {
+        return;
+    }
+
+    m_startedComponents.insert(component);
     QQmlComponent *targetComponent = component->target();
     QObject::connect(targetComponent, &QQmlComponent::progressChanged, this,
                      &AppStartupEntityModuleObject::_q_onComponentProgressChanged);
