@@ -7,18 +7,19 @@ import QtQuick.Effects
 import org.orange.toklive
 
 TextField {
-    id: control
+    id: root
 
     opacity: enabled ? 1 : 0.4
-    leftPadding: (editting) ? searchIcon.width + 2 * Style.item.searchEdit.iconMargin : 0
+    property real iconAreaWidth: 0
+    leftPadding: (root.activeFocus || text.length !== 0) ? iconAreaWidth + 2 * Style.item.searchEdit.iconMargin : 0
     selectionColor: Material.accent
-    selectedTextColor: control.palette.highlightedText
+    selectedTextColor: root.palette.highlightedText
     verticalAlignment: TextInput.AlignVCenter
 
     background: Item {
         Loader {
             anchors.fill: parent
-            active: !control.activeFocus
+            active: !root.activeFocus
 
             sourceComponent: Rectangle {
                 radius: Style.item.searchEdit.radius
@@ -32,10 +33,10 @@ TextField {
                 margins: -Style.item.focusPadding
             }
 
-            active: control.activeFocus
+            active: root.activeFocus
             sourceComponent: Item {
                 Rectangle {
-                    id: _blurRect
+                    id: blurRect
                     anchors.fill: parent
                     visible: false
                     color: Style.item.searchEdit.edittingBackgroundColor
@@ -44,8 +45,8 @@ TextField {
                 }
 
                 MultiEffect {
-                    source: _blurRect
-                    anchors.fill: _blurRect
+                    source: blurRect
+                    anchors.fill: blurRect
                     autoPaddingEnabled: true
                     shadowEnabled: true
                     shadowBlur: 0.4

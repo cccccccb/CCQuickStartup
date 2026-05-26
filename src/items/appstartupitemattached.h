@@ -39,6 +39,7 @@ Q_SIGNALS:
     void startupItemChanged();
 
 private:
+    Q_DISABLE_COPY_MOVE(AppStartupItemAttached)
     QScopedPointer<AppStartupItemAttachedPrivate> dd;
 };
 

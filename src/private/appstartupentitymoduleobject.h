@@ -56,6 +56,7 @@ private:
     AppStartupItem *appRootItem() const;
 
 private:
+    Q_DISABLE_COPY_MOVE(AppStartupEntityModuleObject)
     AppStartupEntityInterface *entityInstance;
 
     QQmlComponent *entityComponent = nullptr;

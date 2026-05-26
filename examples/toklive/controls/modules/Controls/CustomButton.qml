@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Controls.Material
 
 import org.orange.toklive
 
@@ -9,6 +10,10 @@ Button {
     property int iconTextSpacing: Style.item.customButton.iconTextSpacing
 
     contentItem: Item {
+        implicitWidth: textBesideIconLoader.active ? textBesideIconLoader.width
+                                                    : textUnderIconLoader.active ? textUnderIconLoader.width
+                                                                                 : iconOnlyLoader.active ? iconOnlyLoader.width
+                                                                                                         : textOnlyLoader.width
         implicitHeight: textBesideIconLoader.active ? textBesideIconLoader.height
                                                     : textUnderIconLoader.active ? textUnderIconLoader.height
                                                                                  : iconOnlyLoader.active ? iconOnlyLoader.height
@@ -32,6 +37,7 @@ Button {
                 text: root.text
                 font: root.font
                 color: root.icon.color
+                textFormat: Text.PlainText
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
             }

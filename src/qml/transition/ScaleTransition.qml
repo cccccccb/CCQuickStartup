@@ -6,6 +6,8 @@ TransitionGroup {
     id: root
 
     leave: Transition {
+        from: "NONEDIT"
+        to: "EDITTING"
         NumberAnimation {
             duration: 300
             properties: "scale"
@@ -16,6 +18,8 @@ TransitionGroup {
     }
 
     enter: Transition {
+        from: "NONEDIT"
+        to: "EDITTING"
         NumberAnimation {
             duration: 300
             properties: "scale"

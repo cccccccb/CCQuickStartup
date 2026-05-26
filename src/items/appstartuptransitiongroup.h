@@ -46,6 +46,7 @@ signals:
     void enterInitialPropertiesChanged();
 
 private:
+    Q_DISABLE_COPY_MOVE(AppStartupTransitionGroup)
     QScopedPointer<AppStartupTransitionGroupPrivate> dd;
 };
 

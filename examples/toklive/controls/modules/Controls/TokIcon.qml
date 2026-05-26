@@ -15,13 +15,21 @@ Item {
     property bool hovered: false
     property bool pressed: false
 
+    readonly property url iconSource: TokLive.toTokIconUrl(iconName, iconColor, hovered, pressed)
+
     Image {
         id: icon
 
         anchors.centerIn: parent
-        source: TokLive.toTokIconUrl(iconName, iconColor, hovered, pressed)
+        source: root.iconSource
+        asynchronous: true
         sourceSize: Qt.size(iconWidth, iconHeight)
         width: iconWidth
         height: iconHeight
+
+        onStatusChanged: {
+            if (status === Image.Error)
+                console.warn("TokIcon: failed to load icon:", root.iconSource)
+        }
     }
 }

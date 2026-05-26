@@ -15,7 +15,7 @@ Item {
             root.current--
             if (root.current === 0) {
                 root.running = false
-                root.current = interval
+                root.current = root.interval
             }
         }
     }

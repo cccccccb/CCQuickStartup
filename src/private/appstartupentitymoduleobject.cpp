@@ -64,11 +64,10 @@ void AppQmlComponentIncubator::statusChanged(QQmlIncubator::Status status)
     QObject *obj = object();
     if (status != QQmlIncubator::Ready) {
         if (status == QQmlIncubator::Error) {
-            QString errorString = "AppStartupInstance incubator error: ";
-            for (auto error : this->errors()) {
-                errorString += error.toString();
-                errorString += "\t";
-            }
+            QStringList errorParts;
+            for (const auto &error : this->errors())
+                errorParts << error.toString();
+            const QString errorString = QStringLiteral("AppStartupInstance incubator error: ") + errorParts.join(QStringLiteral("\t"));
 
             qWarning() << errorString;
 
@@ -76,6 +75,8 @@ void AppQmlComponentIncubator::statusChanged(QQmlIncubator::Status status)
 
             if (obj)
                 obj->deleteLater();
+
+            entityModule->destoryIncubator(this);
         }
         return;
     }
@@ -142,7 +143,8 @@ void AppQmlComponentIncubator::setInitialState(QObject *o)
 AppStartupEntityModuleObject::~AppStartupEntityModuleObject()
 {
     qDebug() << "App startup entity component destruction";
-    entityInstance = nullptr;
+    qDeleteAll(incubators);
+    incubators.clear();
     qDeleteAll(_childObjects);
     _childObjects.clear();
 }
@@ -183,7 +185,7 @@ bool AppStartupEntityModuleObject::load()
 {
     QObject *obj = this->loadModule(this->_information.path());
     if (!obj) {
-        const QString &errorString = "Load the entity module failed!";
+        const QString &errorString = "Load the entity module failed, " + this->_information.path();
         qWarning() << errorString;
 
         Q_EMIT qq->errorOccured(group(), errorString);
@@ -208,16 +210,16 @@ bool AppStartupEntityModuleObject::load()
                          this, &AppStartupEntityModuleObject::_q_onEntityModuleStatusChanged);
     } else {
         if (entityComponent->status() == QQmlComponent::Error) {
-            QString errorString = "AppStartupInstance error: ";
-            for (auto error : entityComponent->errors()) {
-                errorString += error.toString();
-                errorString += "\t";
-            }
-            errorString += qPrintable(entityComponent->errorString());
+            QStringList errorParts;
+            for (const auto &error : entityComponent->errors())
+                errorParts << error.toString();
+            const QString errorString = QStringLiteral("AppStartupInstance error: ") + errorParts.join(QStringLiteral("\t")) + entityComponent->errorString();
 
             qWarning().nospace() << errorString;
 
             Q_EMIT qq->errorOccured(group(), errorString);
+            entityComponent->deleteLater();
+            entityComponent = nullptr;
             return false;
         }
 
@@ -297,12 +299,10 @@ void AppStartupEntityModuleObject::_q_onEntityModuleStatusChanged(QQmlComponent:
 {
     if (status != QQmlComponent::Ready) {
         if (status == QQmlComponent::Error) {
-            QString errorString = "AppStartupInstance error: ";
-            for (auto error : entityComponent->errors()) {
-                errorString += error.toString();
-                errorString += "\t";
-            }
-            errorString += qPrintable(entityComponent->errorString());
+            QStringList errorParts;
+            for (const auto &error : entityComponent->errors())
+                errorParts << error.toString();
+            const QString errorString = QStringLiteral("AppStartupInstance error: ") + errorParts.join(QStringLiteral("\t")) + entityComponent->errorString();
 
             qWarning().nospace() << errorString;
 
@@ -339,7 +339,8 @@ void AppStartupEntityModuleObject::_q_onComponentProgressChanged()
         progress += childCom->progress();
     }
 
-    rootItem->setProgress(progress / components.count());
+    const qsizetype count = components.count();
+    rootItem->setProgress(count > 0 ? progress / count : 0.0);
 }
 
 void AppStartupEntityModuleObject::_q_onRootSurfaceItemPopulatedChanged(AppStartupItem *surfaceRootItem)
@@ -373,7 +374,10 @@ void AppStartupEntityModuleObject::itemGeometryChanged(QQuickItem *item, QQuickG
 
 bool AppStartupEntityModuleObject::createObjects(const QQmlListReference &pros)
 {
-    Q_ASSERT(entityComponent);
+    if (!entityComponent) {
+        qWarning() << "createObjects called with null entityComponent";
+        return false;
+    }
     if (!pros.isValid())
         return false;
 
@@ -390,7 +394,10 @@ bool AppStartupEntityModuleObject::createObjects(const QQmlListReference &pros)
         qWarning() << "The entity component create failed: " << entityComponent->errors();
     }
 
-    Q_ASSERT_X(_rootItem, "AppStartupInstance", qPrintable("Create the AppStartupItem item failed!"));
+    if (!_rootItem) {
+        qWarning() << "Create the AppStartupItem item failed!";
+        return false;
+    }
 
     resovleInterface(_rootItem.get());
     if (QQmlContext *context = transitionGroupContextFromBinder())

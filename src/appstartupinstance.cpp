@@ -35,6 +35,8 @@ void AppStartupInstance::addModulePath(const QString &dir)
 {
     if (dir.isEmpty())
         return;
+    if (dd->modulePaths.contains(dir))
+        return;
     dd->modulePaths.append(dir);
 }
 

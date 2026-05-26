@@ -1,3 +1,5 @@
 import QtQuick.Controls as T
 
-T.ApplicationWindow { }
+T.ApplicationWindow {
+    id: root
+}

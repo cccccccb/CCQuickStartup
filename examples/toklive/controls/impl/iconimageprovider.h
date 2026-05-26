@@ -12,9 +12,9 @@ public:
     IconImageProvider();
 
     static QUrl toTokIconUrl(const QString &name, const QColor &color, bool hovered, bool pressed);
-    static QString getNameFromQueryItem(const QString &query);
-    static QColor getColorFromQueryItem(const QString &query);
-    static bool getBoolFromQueryItem(const QString &key, const QString &query);
+    static QString nameFromQueryItem(const QString &query);
+    static QColor colorFromQueryItem(const QString &query);
+    static bool boolFromQueryItem(const QString &key, const QString &query);
 
     QPixmap requestPixmap(const QString &id, QSize *size, const QSize &requestedSize) override;
 };

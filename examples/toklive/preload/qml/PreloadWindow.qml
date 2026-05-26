@@ -1,5 +1,5 @@
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Controls.Basic
 import QtQuick.Controls.Material
 import QtQuick.Effects
 
@@ -14,10 +14,12 @@ AppPreloadItem {
 
         Button {
             id: skipButton
-            anchors.right: parent.right
-            anchors.top: parent.top
-            anchors.topMargin: 10
-            anchors.rightMargin: 10
+            anchors {
+                right: parent.right
+                top: parent.top
+                topMargin: 10
+                rightMargin: 10
+            }
 
             Material.background: Qt.color("#CCE04F5F")
             Material.foreground: Qt.color("#FFFFFFFF")
@@ -63,10 +65,11 @@ AppPreloadItem {
     Countdown {
         id: preloadCountdown
         interval: 10
-        running: root.visible
+        running: Qt.binding(function() { return root.visible })
     }
 
    onWindowChanged: {
+        if (!root.window) return
         root.window.Frameless.enabled = true
         root.window.Frameless.canWindowResize = false
     }

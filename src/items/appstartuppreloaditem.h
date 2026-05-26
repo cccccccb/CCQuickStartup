@@ -85,6 +85,7 @@ Q_SIGNALS:
 
 private:
     friend class AppStartupPreloadModuleObject;
+    Q_DISABLE_COPY_MOVE(AppPreloadItem)
     QScopedPointer<AppPreloadItemPrivate> dd;
 };
 

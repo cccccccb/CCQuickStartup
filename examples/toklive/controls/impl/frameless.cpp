@@ -1,7 +1,8 @@
-#include "Frameless.h"
-#include "FramelessWorker.h"
-#include "FramelessWorkerEvent.h"
+#include "frameless.h"
+#include "framelessworker.h"
+#include "framelessworkerevent.h"
 
+#include <QMutexLocker>
 #include <QWindow>
 #include <QMouseEvent>
 #include <QRect>
@@ -57,21 +58,25 @@ bool Frameless::enabled() const
 
 void Frameless::setDirection(Direction dir)
 {
+    QMutexLocker locker(&m_mutex);
     mDir = dir;
 }
 
 Frameless::Direction Frameless::direction() const
 {
+    QMutexLocker locker(&m_mutex);
     return mDir;
 }
 
 void Frameless::setCurrentCanWindowMove(bool canWindowMove)
 {
+    QMutexLocker locker(&m_mutex);
     mCurrentCanWindowMove = canWindowMove;
 }
 
 bool Frameless::currentCanWindowMove() const
 {
+    QMutexLocker locker(&m_mutex);
     return mCurrentCanWindowMove;
 }
 
@@ -100,6 +105,8 @@ bool Frameless::canWindowResize() const
 
 void Frameless::setFramelessBorder(int framelessBorder)
 {
+    if (framelessBorder < 0)
+        framelessBorder = 0;
     if (m_frameBorder == framelessBorder)
         return;
 
@@ -126,41 +133,49 @@ qreal Frameless::contentMargins() const
 
 void Frameless::setDragPosition(const QPoint &dragPosition)
 {
+    QMutexLocker locker(&m_mutex);
     mDragPosition = dragPosition;
 }
 
 QPoint Frameless::dragPosition() const
 {
+    QMutexLocker locker(&m_mutex);
     return mDragPosition;
 }
 
 void Frameless::setLeftMouseButtonPressed(bool pressed)
 {
+    QMutexLocker locker(&m_mutex);
     mLeftButtonPress = pressed;
 }
 
 bool Frameless::leftMouseButtonPressed() const
 {
+    QMutexLocker locker(&m_mutex);
     return mLeftButtonPress;
 }
 
 void Frameless::setAcceptSystemResize(bool accept)
 {
+    QMutexLocker locker(&m_mutex);
     mAcceptSystemResize = accept;
 }
 
 bool Frameless::acceptSystemResize() const
 {
+    QMutexLocker locker(&m_mutex);
     return mAcceptSystemResize;
 }
 
 void Frameless::setAcceptSystemMoving(bool accept)
 {
+    QMutexLocker locker(&m_mutex);
     mAcceptSystemMoving = accept;
 }
 
 bool Frameless::acceptSystemMoving() const
 {
+    QMutexLocker locker(&m_mutex);
     return mAcceptSystemMoving;
 }
 
@@ -291,7 +306,7 @@ static Qt::Edges directionToQtEdges(Frameless::Direction dir)
         return Qt::LeftEdge | Qt::BottomEdge;
     case Frameless::Direction::BottomRight:
         return Qt::RightEdge | Qt::BottomEdge;
-    default:
+    case Frameless::Direction::None:
         break;
     }
 

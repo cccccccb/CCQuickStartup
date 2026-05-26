@@ -26,21 +26,21 @@ QUrl IconImageProvider::toTokIconUrl(const QString &name, const QColor &color, b
     return url;
 }
 
-QString IconImageProvider::getNameFromQueryItem(const QString &query)
+QString IconImageProvider::nameFromQueryItem(const QString &query)
 {
     QUrlQuery args(query);
 
     return args.queryItemValue("name");
 }
 
-QColor IconImageProvider::getColorFromQueryItem(const QString &query)
+QColor IconImageProvider::colorFromQueryItem(const QString &query)
 {
     QUrlQuery args(query);
 
     return QColor(args.queryItemValue("color"));
 }
 
-bool IconImageProvider::getBoolFromQueryItem(const QString &key, const QString &query)
+bool IconImageProvider::boolFromQueryItem(const QString &key, const QString &query)
 {
     QUrlQuery args(query);
 
@@ -49,14 +49,14 @@ bool IconImageProvider::getBoolFromQueryItem(const QString &key, const QString &
 
 QPixmap IconImageProvider::requestPixmap(const QString &id, QSize *size, const QSize &requestedSize)
 {
-    const QString &iconName = getNameFromQueryItem(id);
-    QColor iconColor = getColorFromQueryItem(id);
+    const QString &iconName = nameFromQueryItem(id);
+    QColor iconColor = colorFromQueryItem(id);
     bool colorIsValid = iconColor.isValid() && iconColor.alpha() > 0;
 
     if (colorIsValid) {
-        if (getBoolFromQueryItem("pressed", id)) {
+        if (boolFromQueryItem("pressed", id)) {
             iconColor = iconColor.darker(120);
-        } else if (getBoolFromQueryItem("hovered", id)) {
+        } else if (boolFromQueryItem("hovered", id)) {
             iconColor = iconColor.lighter(120);
         }
     }

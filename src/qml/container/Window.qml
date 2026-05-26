@@ -1,3 +1,5 @@
 import QtQuick as T
 
-T.Window { }
+T.Window {
+    id: root
+}

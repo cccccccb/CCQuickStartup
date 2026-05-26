@@ -27,19 +27,21 @@ AppStartupModuleGroup::AppStartupModuleGroup(QObject *parent)
     : QObject{parent}
     , dd(new AppStartupModuleGroupPrivate(this))
 {
-    connect(AppStartupInstance::instance(), &AppStartupInstance::loaded, this,
-            [this](const QSharedPointer<AppStartupModuleGroup> &module) {
-            if (module == this) {
-                Q_EMIT this->loadedChanged();
-            }
-    });
+    if (AppStartupInstance *instance = AppStartupInstance::instance()) {
+        connect(instance, &AppStartupInstance::loaded, this,
+                [this](const QSharedPointer<AppStartupModuleGroup> &module) {
+                if (module == this) {
+                    Q_EMIT this->loadedChanged();
+                }
+        });
 
-    connect(AppStartupInstance::instance(), &AppStartupInstance::errorOccured, this,
-            [this](const QSharedPointer<AppStartupModuleGroup> &module, const QString &errorString) {
-            if (module == this) {
-                Q_EMIT this->errorOccured(errorString);
-            }
-    });
+        connect(instance, &AppStartupInstance::errorOccured, this,
+                [this](const QSharedPointer<AppStartupModuleGroup> &module, const QString &errorString) {
+                if (module == this) {
+                    Q_EMIT this->errorOccured(errorString);
+                }
+        });
+    }
 }
 
 AppStartupModuleGroup::AppStartupModuleGroup(std::pair<AppStartupModuleInformation, AppStartupModuleInformation> args, QObject *parent)
@@ -55,9 +57,10 @@ AppStartupModuleGroup::~AppStartupModuleGroup()
 
 bool AppStartupModuleGroup::operator==(const AppStartupModuleGroup &other) const
 {
-    return isValid() ? (other.preload() == this->preload()
-                        && other.entity() == this->entity())
-                     : true;
+    if (!isValid() || !other.isValid())
+        return !isValid() && !other.isValid();
+    return other.preload() == this->preload()
+           && other.entity() == this->entity();
 }
 
 bool AppStartupModuleGroup::operator!=(const AppStartupModuleGroup &other) const

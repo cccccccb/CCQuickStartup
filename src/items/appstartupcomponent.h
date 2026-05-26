@@ -40,6 +40,7 @@ Q_SIGNALS:
     void targetChanged();
 
 private:
+    Q_DISABLE_COPY_MOVE(AppStartupComponent)
     QScopedPointer<AppStartupComponentPrivate> dd;
 };
 

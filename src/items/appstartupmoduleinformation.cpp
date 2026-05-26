@@ -34,20 +34,6 @@ AppStartupModuleInformation::AppStartupModuleInformation(const AppStartupModuleI
     this->m_properties = other.m_properties;
 }
 
-AppStartupModuleInformation::AppStartupModuleInformation(AppStartupModuleInformation &other)
-{
-    this->m_startModule = other.m_startModule;
-    this->m_appId = other.m_appId;
-    this->m_descriptor = other.m_descriptor;
-    this->m_version = other.m_version;
-    this->m_description = other.m_description;
-    this->m_features = other.m_features;
-    this->m_changelog = other.m_changelog;
-    this->m_default = other.m_default;
-    this->m_path = other.m_path;
-    this->m_properties = other.m_properties;
-}
-
 AppStartupModuleInformation::AppStartupModuleInformation(AppStartupModuleInformation &&other)
 {
     this->m_startModule = std::move(other.m_startModule);
@@ -80,11 +66,12 @@ AppStartupModuleInformation &AppStartupModuleInformation::operator=(const AppSta
 
 bool AppStartupModuleInformation::operator==(const AppStartupModuleInformation &other) const
 {
-    return isValid() ? (other.m_startModule == this->m_startModule
-                        && other.m_appId == this->m_appId
-                        && other.m_descriptor == this->m_descriptor
-                        && other.m_version == this->m_version)
-                     : true;
+    if (!isValid() || !other.isValid())
+        return !isValid() && !other.isValid();
+    return other.m_startModule == this->m_startModule
+           && other.m_appId == this->m_appId
+           && other.m_descriptor == this->m_descriptor
+           && other.m_version == this->m_version;
 }
 
 bool AppStartupModuleInformation::operator!=(const AppStartupModuleInformation &other) const

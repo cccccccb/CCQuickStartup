@@ -76,6 +76,7 @@ protected:
 private:
     friend class AppStartupModuleObject;
     friend class AppStartupModuleGroupPrivate;
+    Q_DISABLE_COPY_MOVE(AppStartupModuleGroup)
     QScopedPointer<AppStartupModuleGroupPrivate> dd;
 };
 

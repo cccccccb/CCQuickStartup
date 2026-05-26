@@ -6,6 +6,8 @@ TransitionGroup {
     id: root
 
     leave: Transition {
+        from: "NONEDIT"
+        to: "EDITTING"
         SequentialAnimation {
             ParallelAnimation {
                 NumberAnimation {
@@ -35,6 +37,8 @@ TransitionGroup {
     }
 
     enter: Transition {
+        from: "NONEDIT"
+        to: "EDITTING"
         SequentialAnimation {
             NumberAnimation {
                 target: enterProp

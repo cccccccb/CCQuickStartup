@@ -22,7 +22,7 @@ public:
     Q_INVOKABLE QUrl toTokIconUrl(const QString &name, const QColor &color, bool hovered, bool pressed);
 
 private:
-    bool m_isAndroid;
+    Q_DISABLE_COPY_MOVE(TokLiveQmlInstance)
 };
 
 #endif // TOKLIVEQMLINSTANCE_H

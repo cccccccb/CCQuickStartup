@@ -23,7 +23,6 @@ public:
     AppStartupModuleInformation();
     AppStartupModuleInformation(const QString &path);
     AppStartupModuleInformation(const AppStartupModuleInformation &other);
-    AppStartupModuleInformation(AppStartupModuleInformation &other);
     AppStartupModuleInformation(AppStartupModuleInformation &&other);
     AppStartupModuleInformation &operator=(const AppStartupModuleInformation &other);
     AppStartupModuleInformation &operator=(AppStartupModuleInformation &&other);

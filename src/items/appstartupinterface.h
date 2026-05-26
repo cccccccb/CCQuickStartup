@@ -33,6 +33,7 @@ Q_SIGNALS:
     void objectChanged();
 
 private:
+    Q_DISABLE_COPY_MOVE(AppStartupInterface)
     QScopedPointer<AppStartupInterfacePrivate> dd;
 };
 

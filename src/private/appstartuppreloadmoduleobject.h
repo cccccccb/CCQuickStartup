@@ -42,6 +42,7 @@ private Q_SLOTS:
     void findWindowContentItem();
 
 private:
+    Q_DISABLE_COPY_MOVE(AppStartupPreloadModuleObject)
     AppStartupPreloadInterface *preloadInstance = nullptr;
 
     QQuickItem *loadingOverlay = nullptr;

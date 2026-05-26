@@ -35,9 +35,6 @@ public:
         : _qq(qq)
     {}
 
-    QVariant updateValue(const QString &key, const QVariant &input);
-    bool validKeyName(const QString& name);
-
     const QString &propertyName(int index) const;
 
     AppStartupItem *_qq;
@@ -54,26 +51,12 @@ public:
     QStringList keys;
 };
 
-bool AppStartupItemPrivate::validKeyName(const QString& name)
-{
-    //The following strings shouldn't be used as property names
-    return  name != QLatin1String("loaded")
-           && name != QLatin1String("progress")
-           && name != QLatin1String("container")
-           && name != QLatin1String("asynchronous")
-           && name != QLatin1String("QObject")
-           && name != QLatin1String("destroyed")
-           && name != QLatin1String("deleteLater");
-}
-
-QVariant AppStartupItemPrivate::updateValue(const QString &, const QVariant &input)
-{
-    return input;
-}
-
 const QString &AppStartupItemPrivate::propertyName(int index) const
 {
-    Q_ASSERT(index < keys.size());
+    if (index < 0 || index >= keys.size()) {
+        static const QString empty;
+        return empty;
+    }
     return keys[index];
 }
 
@@ -108,6 +91,10 @@ qreal AppStartupItem::progress() const
 
 void AppStartupItem::setProgress(qreal progress)
 {
+    if (progress < 0.0)
+        progress = 0.0;
+    else if (progress > 1.0)
+        progress = 1.0;
     if (qFuzzyCompare(progress, dd->_progress))
         return;
     dd->_progress = progress;

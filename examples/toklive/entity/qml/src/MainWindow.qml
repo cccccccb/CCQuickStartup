@@ -12,6 +12,7 @@ AppStartupItem {
     property int mainMargin
     Binding {
         when: root.loaded
+        restoreMode: Binding.RestoreNone
         root.mainMargin: AppStartupItem.mainPane.showShadow ? Style.item.marginLevel1 : 0
     }
 
@@ -53,6 +54,7 @@ AppStartupItem {
 
             Binding {
                 when: root.loaded
+                restoreMode: Binding.RestoreNone
                 rightPane.width: parent.width - AppStartupItem.leftControlBar.width - root.mainMargin
             }
         }
@@ -61,7 +63,7 @@ AppStartupItem {
     onPopulateChanged: {
         if (populate) {
             Window.window.Frameless.canWindowResize = true
-            Window.window.Frameless.contentMargins = AppStartupItem.mainPane.anchors.margins
+            Window.window.Frameless.contentMargins = Qt.binding(function() { return root.AppStartupItem.mainPane.anchors.margins })
         }
     }
 }

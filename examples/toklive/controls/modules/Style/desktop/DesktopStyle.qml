@@ -32,7 +32,7 @@ QtObject {
     readonly property SearchEditStyle searchEdit: SearchEditStyle {}
     readonly property CustomButtonStyle customButton: CustomButtonStyle {}
 
-    property date currentTime: new Date()
+    readonly property date currentTime: new Date()
 
     readonly property QtObject extraStyle: QtObject {
         readonly property int packButtonSize: 12

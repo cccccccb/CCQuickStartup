@@ -4,12 +4,18 @@
 #include <QJniObject>
 #endif
 
+EdgeToEdgeModeHelper::EdgeToEdgeModeHelper(QObject *parent)
+    : QObject(parent)
+{
+
+}
+
 void EdgeToEdgeModeHelper::enable()
 {
     enableEdgeToEdge();
 }
 
-int EdgeToEdgeModeHelper::getStatusBarHeight()
+int EdgeToEdgeModeHelper::fetchStatusBarHeight()
 {
     int height = 0;
 
@@ -32,7 +38,7 @@ int EdgeToEdgeModeHelper::getStatusBarHeight()
     return height;
 }
 
-int EdgeToEdgeModeHelper::getNavigationBarHeight()
+int EdgeToEdgeModeHelper::fetchNavigationBarHeight()
 {
     int height = 0;
 
@@ -55,7 +61,7 @@ int EdgeToEdgeModeHelper::getNavigationBarHeight()
     return height;
 }
 
-float EdgeToEdgeModeHelper::getDeviceDensity()
+float EdgeToEdgeModeHelper::fetchDeviceDensity()
 {
     int density = 1;
 
@@ -108,9 +114,9 @@ void EdgeToEdgeModeHelper::enableEdgeToEdge()
             env->ExceptionClear();
         }
 
-        auto statusBarHeight = getStatusBarHeight();
-        auto navigationBarHeight = getNavigationBarHeight();
-        auto deviceDensity = getDeviceDensity();
+        auto statusBarHeight = fetchStatusBarHeight();
+        auto navigationBarHeight = fetchNavigationBarHeight();
+        auto deviceDensity = fetchDeviceDensity();
 
         if (m_deviceDensity != deviceDensity) {
             m_deviceDensity = deviceDensity;

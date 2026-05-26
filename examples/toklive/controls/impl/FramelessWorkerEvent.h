@@ -8,7 +8,7 @@ class Frameless;
 class QWindow;
 struct FramelessEvent
 {
-    enum EventType {
+    enum EventType : int {
         UnkonwEvent = -1,
         FocusIn,
         MouseHover,
@@ -21,8 +21,8 @@ struct FramelessEvent
     FramelessEvent(EventType type);
     virtual ~FramelessEvent();
 
-    EventType type();
-    QWindow *target = nullptr;
+    EventType type() const;
+    QPointer<QWindow> target;
     QPointer<Frameless> frameless;
 
 private:

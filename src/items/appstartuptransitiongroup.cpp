@@ -79,7 +79,7 @@ void AppStartupTransitionGroup::setEnterInitialProperties(AppStartupInitialPrope
         return;
 
     dd->_enterInitialProperties = enterInitialProperties;
-    Q_EMIT leaveInitialPropertiesChanged();
+    Q_EMIT enterInitialPropertiesChanged();
 }
 
 #include "moc_appstartuptransitiongroup.cpp"

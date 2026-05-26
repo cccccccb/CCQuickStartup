@@ -52,6 +52,7 @@ private:
     bool eventFilter(QObject *watched, QEvent *event) override;
 
 private:
+    Q_DISABLE_COPY_MOVE(FramelessAttached)
     Frameless *m_frameless = nullptr;
     QVector<QQuickItem *> m_moveUnderContainer;
     QVector<QQuickItem *> m_moveExcludeContainer;

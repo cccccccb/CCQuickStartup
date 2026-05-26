@@ -16,7 +16,8 @@ ColumnLayout {
                 anchors.centerIn: parent
 
                 Component.onCompleted: {
-                    Window.window.Frameless.moveExclude.push(searchEdit)
+                    if (Window.window)
+                        Window.window.Frameless.moveExclude.push(searchEdit)
                 }
             }
         }
@@ -26,12 +27,14 @@ ColumnLayout {
             Layout.alignment: Qt.AlignCenter
 
             Component.onCompleted: {
-                Window.window.Frameless.moveUnder.push(logoPane)
+                if (Window.window)
+                    Window.window.Frameless.moveUnder.push(logoPane)
             }
         }
 
         Component.onCompleted: {
-            Window.window.Frameless.moveUnder.push(titleLayout)
+            if (Window.window)
+                Window.window.Frameless.moveUnder.push(titleLayout)
         }
     }
 

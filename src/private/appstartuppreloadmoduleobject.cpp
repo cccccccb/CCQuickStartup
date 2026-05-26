@@ -17,6 +17,8 @@
 
 #include <private/qquicktransition_p.h>
 
+static constexpr qreal kLoadingOverlayZ = 99.0;
+
 void AppStartupPreloadModuleObject::doOverlayAutoExitChanged(AppPreloadItem *attached)
 {
     if (!attached->autoExitOverlay()) {
@@ -96,10 +98,10 @@ bool AppStartupPreloadModuleObject::createSurface()
     AppPreloadItem::PreloadSurface previewType = item->preloadSurface();
     QQmlComponent *surfaceComponent = nullptr;
     if (previewType == AppPreloadItem::WindowSurface) {
-        surfaceComponent = new QQmlComponent(dd->engine.get(), QUrl("qrc:/appstartup/private/qml/container/Window.qml"), QQmlComponent::PreferSynchronous);
+        surfaceComponent = new QQmlComponent(dd->engine.get(), QUrl("qrc:/appstartup/private/qml/container/Window.qml"), QQmlComponent::PreferSynchronous, this);
     } else if (previewType == AppPreloadItem::ApplicationWindowSurface) {
-        surfaceComponent = new QQmlComponent(dd->engine.get(), QUrl("qrc:/appstartup/private/qml/container/ApplicationWindow.qml"), QQmlComponent::PreferSynchronous);
-    } if (previewType == AppPreloadItem::CustomSurface) {
+        surfaceComponent = new QQmlComponent(dd->engine.get(), QUrl("qrc:/appstartup/private/qml/container/ApplicationWindow.qml"), QQmlComponent::PreferSynchronous, this);
+    } else if (previewType == AppPreloadItem::CustomSurface) {
         surfaceComponent = item->customPreloadSurface();
     }
 
@@ -249,16 +251,18 @@ bool AppStartupPreloadModuleObject::load()
 
 void AppStartupPreloadModuleObject::_q_onPreloadCreated(QObject *obj, const QUrl &objUrl)
 {
-    if (objUrl.isLocalFile() && QFileInfo(objUrl.toString()) != QFileInfo(preloadInstance->preloadModulePath().toString())) {
-        const QString &errorString = QString("Preload module path [%1] is invalid!").arg(objUrl.toString());
+    const QString objPath = objUrl.toString();
+    const QString modulePath = preloadInstance->preloadModulePath().toString();
+    if (objUrl.isLocalFile() && QFileInfo(objPath) != QFileInfo(modulePath)) {
+        const QString &errorString = QString("Preload module path [%1] is invalid!").arg(objPath);
         qWarning() << errorString;
 
         Q_EMIT qq->errorOccured(group(), errorString);
         return;
     }
 
-    if (objUrl != preloadInstance->preloadModulePath() && QFileInfo(objUrl.toString()) != QFileInfo(preloadInstance->preloadModulePath().toString())) {
-        const QString &errorString = QString("Preload module path [%1] is invalid!").arg(objUrl.toString());
+    if (objUrl != preloadInstance->preloadModulePath() && QFileInfo(objPath) != QFileInfo(modulePath)) {
+        const QString &errorString = QString("Preload module path [%1] is invalid!").arg(objPath);
         qWarning() << errorString;
 
         Q_EMIT qq->errorOccured(group(), errorString);
@@ -274,7 +278,10 @@ void AppStartupPreloadModuleObject::_q_onPreloadCreated(QObject *obj, const QUrl
     }
 
     setContentItem(qmlobject_cast<AppPreloadItem *>(obj));
-    Q_ASSERT_X(contentItem(), "AppPreloadItem", "Preload root item only use the AppPreloadItem item!");
+    if (!contentItem()) {
+        qWarning() << "Preload root item only use the AppPreloadItem item!";
+        return;
+    }
 
     if (!createSurface()) {
         const QString &errorString = "Create module preload surface failed!";
@@ -285,7 +292,10 @@ void AppStartupPreloadModuleObject::_q_onPreloadCreated(QObject *obj, const QUrl
     }
 
     findContainerItem();
-    Q_ASSERT(_containerContentItem);
+    if (!_containerContentItem) {
+        qWarning() << "Could not find container content item";
+        return;
+    }
 
     initRootItem(_containerContentItem);
     appPreloadItem()->setParentItem(_containerContentItem);
@@ -337,7 +347,7 @@ void AppStartupPreloadModuleObject::createOverlay()
     }
 
     loadingOverlay->setParentItem(_containerContentItem);
-    loadingOverlay->setZ(99);
+    loadingOverlay->setZ(kLoadingOverlayZ);
 
     if (tgContext)
         tgContext->setContextProperty("leaveTarget", loadingOverlay);

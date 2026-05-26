@@ -9,8 +9,8 @@ LineEdit {
     id: control
     readonly property bool editting: control.activeFocus || (text.length !== 0)
     property alias placeholder: centerIndicatorLabel.text
+    iconAreaWidth: searchIcon.width
 
-    state: "NONEDIT"
     states: [
         State {
             name: "EDITTING"
@@ -84,17 +84,14 @@ LineEdit {
                 text: qsTr("Search")
                 font: control.font
                 color: Style.item.searchEdit.placeholderTextColor
+                textFormat: Text.PlainText
                 verticalAlignment: Text.AlignVCenter
             }
         }
 
-        MouseArea {
-            anchors.fill: parent
-            visible: !editting
-            onPressed: (mouse)=> {
-                control.forceActiveFocus(Qt.MouseFocusReason)
-                mouse.accepted = false
-            }
+        TapHandler {
+            enabled: !editting
+            onTapped: control.forceActiveFocus(Qt.MouseFocusReason)
         }
     }
 }

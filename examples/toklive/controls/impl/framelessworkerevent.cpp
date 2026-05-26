@@ -11,7 +11,7 @@ FramelessEvent::~FramelessEvent()
 
 }
 
-FramelessEvent::EventType FramelessEvent::type()
+FramelessEvent::EventType FramelessEvent::type() const
 {
     return mEventType;
 }
@@ -42,6 +42,12 @@ FramelessMouseReleaseEvent::FramelessMouseReleaseEvent()
 
 FramelessLeaveEvent::FramelessLeaveEvent()
     : FramelessEvent(EventType::Leave)
+{
+
+}
+
+FramelessWindowDeactivateEvent::FramelessWindowDeactivateEvent()
+    : FramelessEvent(EventType::UnkonwEvent)
 {
 
 }

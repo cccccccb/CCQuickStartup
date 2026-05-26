@@ -30,6 +30,7 @@ PopupPane {
 
             sourceComponent: Text {
                 text: "逗音"
+                textFormat: Text.PlainText
                 color: Qt.color("#CCE04F5F")
                 font.bold: true
                 font.pointSize: 12

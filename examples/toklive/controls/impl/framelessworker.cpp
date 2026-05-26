@@ -49,7 +49,7 @@ FramelessEvent *FramelessWorker::takeEvent()
         mCondition.wait(&mMutex);
 
     FramelessEvent *event = nullptr;
-    if (mEventQueue.length() > 0)
+    if (mEventQueue.size() > 0)
         event = mEventQueue.takeFirst();
 
     return event;
@@ -89,7 +89,7 @@ void FramelessWorker::run()
             leave(static_cast<FramelessLeaveEvent *>(event));
             break;
 
-        default:
+        case FramelessEvent::UnkonwEvent:
             break;
         }
 
@@ -273,7 +273,7 @@ QRect FramelessWorker::calcPositionRect(Frameless::Direction dir, QWindow *targe
     }
         break;
 
-    default:
+    case Frameless::Direction::None:
         break;
     }
 
@@ -291,7 +291,7 @@ QRect FramelessWorker::calcOriginRect(QWindow *taget)
 
 void FramelessWorker::focusIn(FramelessFocusInEvent *event)
 {
-    if (!event->frameless)
+    if (!event->frameless || !event->target)
         return;
 
     if (!event->canWindowResize
@@ -310,7 +310,7 @@ void FramelessWorker::focusIn(FramelessFocusInEvent *event)
 
 void FramelessWorker::mouseHover(FramelessMouseMoveEvent *event)
 {
-    if (!event->frameless)
+    if (!event->frameless || !event->target)
         return;
 
     if (event->frameless->leftMouseButtonPressed()
@@ -334,7 +334,7 @@ void FramelessWorker::mouseHover(FramelessMouseMoveEvent *event)
 
 void FramelessWorker::mousePress(FramelessMousePressEvent *event)
 {
-    if (!event->frameless)
+    if (!event->frameless || !event->target)
         return;
 
     event->frameless->setLeftMouseButtonPressed(true);
@@ -354,7 +354,7 @@ void FramelessWorker::mousePress(FramelessMousePressEvent *event)
 
 void FramelessWorker::mouseMove(FramelessMouseMoveEvent *event)
 {
-    if (!event->frameless)
+    if (!event->frameless || !event->target)
         return;
 
     if (!event->frameless->leftMouseButtonPressed()) {
@@ -403,7 +403,7 @@ void FramelessWorker::mouseMove(FramelessMouseMoveEvent *event)
 
 void FramelessWorker::mouseRelease(FramelessMouseReleaseEvent *event)
 {
-    if (!event->frameless)
+    if (!event->frameless || !event->target)
         return;
 
     QMetaObject::invokeMethod(event->frameless, "unsetCursorByFrameless", Qt::QueuedConnection);
@@ -414,7 +414,7 @@ void FramelessWorker::mouseRelease(FramelessMouseReleaseEvent *event)
 
 void FramelessWorker::leave(FramelessLeaveEvent *event)
 {
-    if (!event->frameless)
+    if (!event->frameless || !event->target)
         return;
 
     if (event->frameless->leftMouseButtonPressed())

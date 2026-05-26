@@ -14,7 +14,7 @@ class TokLiveControlExtension : public QQmlExtensionPlugin
 
 public:
     explicit TokLiveControlExtension(QObject *parent = nullptr);
-    ~TokLiveControlExtension() override;;
+    ~TokLiveControlExtension() override;
 
     void registerTypes(const char *uri) override;
     void initializeEngine(QQmlEngine *engine, const char *uri) override;

@@ -5,6 +5,7 @@ import QtQuick.Controls.Material
 import org.orange.toklive
 
 Rectangle {
+    id: root
     color: "white"
     border.color: "gray"
     border.width: 1
@@ -14,6 +15,8 @@ Rectangle {
         anchors.centerIn: parent
         spacing: 20
         populate: Transition {
+            from: "NONEDIT"
+            to: "EDITTING"
             ParallelAnimation {
                 NumberAnimation {
                     properties: "y"
@@ -41,6 +44,7 @@ Rectangle {
             anchors.horizontalCenter: parent.horizontalCenter
             horizontalAlignment: Text.AlignHCenter
             text: "逗音"
+            textFormat: Text.PlainText
             color: Qt.color("#EEE04F5F")
             font.bold: true
             font.pointSize: Style.item.fontSize.t1
@@ -52,6 +56,7 @@ Rectangle {
 
             Text {
                 anchors.verticalCenter: parent.verticalCenter
+                textFormat: Text.PlainText
                 verticalAlignment: Text.AlignVCenter
                 text: qsTr("Getting ready to enter...")
                 color: Qt.color("#A0E04F5F")

@@ -62,6 +62,7 @@ Q_SIGNALS:
     void populateChanged();
 
 private:
+    Q_DISABLE_COPY_MOVE(AppStartupItem)
     QScopedPointer<AppStartupItemPrivate> dd;
 };
 

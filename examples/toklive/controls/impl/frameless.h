@@ -3,6 +3,7 @@
 
 #include <QEvent>
 #include <QMargins>
+#include <QMutex>
 #include <QObject>
 #include <QPoint>
 #include <QRect>
@@ -66,8 +67,6 @@ public:
     void setAcceptSystemMoving(bool accept);
     bool acceptSystemMoving() const;
 
-    bool framelessMoving() const;
-
     void targetEvent(QEvent *event);
 
     QWindow *window() const;
@@ -93,11 +92,13 @@ private:
     bool                mLeftButtonPress = false;
     bool                mAlreadyChangeCursor = false;
     bool                mCurrentCanWindowMove = false;
-    int                 mOverrideCursorShape = false;
+    int                 mOverrideCursorShape = Qt::ArrowCursor;
     bool                mAcceptSystemResize = false;
     bool                mAcceptSystemMoving = false;
+    Q_DISABLE_COPY_MOVE(Frameless)
     int                 m_frameBorder       = 0;
     qreal               m_contentMargins    = 0.0;
+    mutable QMutex      m_mutex;
 };
 
 #endif // FRAMELESS_H

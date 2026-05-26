@@ -45,7 +45,7 @@ public:
     virtual AppStartupModuleObject *transitionLinkNext() {return nullptr;}
     virtual AppStartupModuleObject *transitionLinkPrev() {return nullptr;}
 
-    enum TrasitionBeginMode { BeginHead, BeginCurrent };
+    enum TrasitionBeginMode : int { BeginHead, BeginCurrent };
     virtual bool startTransition(TrasitionBeginMode mode = TrasitionBeginMode::BeginHead);
     virtual void beforeTransition() {}
     virtual void transitionFinish() {}
@@ -92,6 +92,7 @@ protected:
     QPointer<AppStartupTransitionGroup> _transitionGroup = nullptr;
 
 private:
+    Q_DISABLE_COPY_MOVE(AppStartupModuleObject)
     void transitionFinishedImpl();
 };
 

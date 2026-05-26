@@ -164,11 +164,7 @@ QQmlContext *AppStartupModuleObject::transitionGroupContextFromBinder() const
     if (!tgComponent)
         return nullptr;
 
-    if (binder()) {
-        return binder()->_itemContextMap.value(tgComponent);
-    }
-
-    return _itemContextMap.value(tgComponent);
+    return binder()->_itemContextMap.value(tgComponent);
 }
 
 QQuickWindow *AppStartupModuleObject::appWindowFromBinder() const
@@ -207,11 +203,10 @@ QVariantHash AppStartupModuleObject::initialItemProperties(QObject *target, AppS
     const QMetaObject *initMetaObject = initialProperties->metaObject();
     for (int index = initMetaObject->propertyOffset(); index < initMetaObject->propertyCount(); ++index) {
         const QMetaProperty &mtProp = initMetaObject->property(index);
-        const QString &dynamicProperty = QString::fromLatin1(mtProp.name());
+        const QString dynamicProperty = QString::fromLatin1(mtProp.name());
         if (!dynamicProperty.startsWith(QLatin1String("_private"))
             && !dynamicProperty.startsWith(QLatin1String("target"))) {
-            const QMetaProperty &mtProp = initMetaObject->property(index);
-            rootPropertyHash.insert(QString::fromLatin1(mtProp.name()), mtProp.read(initialProperties));
+            rootPropertyHash.insert(dynamicProperty, mtProp.read(initialProperties));
         }
     }
 
@@ -242,15 +237,15 @@ QVariantHash AppStartupModuleObject::initialItemProperties(QObject *obj, const Q
             const bool isValid = prop.isValid();
             if (isValid) {
                 prevPropertiesHash.insert(dynamicProperty, privProp->readValueProperty());
-                privProp->writeValueProperty(applyPropertiesHash.value(dynamicProperty), {});
+                privProp->writeValueProperty(it.value(), {});
             }
 
             applyPropertiesHash.erase(it);
         }
     }
 
-    for (const auto &noExistProp : applyPropertiesHash.keys())
-        qWarning() << "Dont find the propert: [" << noExistProp << "], from the target: " << obj;
+    for (auto it = applyPropertiesHash.constBegin(); it != applyPropertiesHash.constEnd(); ++it)
+        qWarning() << "Dont find the propert: [" << it.key() << "], from the target: " << obj;
 
     //! ##TODO: support the vme meta properties.
 
@@ -303,6 +298,9 @@ void AppStartupModuleObject::transitionFinishedImpl()
 
 bool AppStartupModuleObject::startTransition(TrasitionBeginMode mode)
 {
+    if (_duringTransition)
+        return false;
+
     _duringTransition = true;
     AppStartupModuleObject *headModule = this;
 

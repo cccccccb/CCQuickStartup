@@ -10,6 +10,8 @@ class CC_QUICKSTARTUP_EXPORT AppStartupInitialProperties : public QObject
     Q_OBJECT
     QML_NAMED_ELEMENT(InitialProperties)
 
+    Q_DISABLE_COPY_MOVE(AppStartupInitialProperties)
+
 public:
     explicit AppStartupInitialProperties(QObject *parent = nullptr);
     ~AppStartupInitialProperties() = default;

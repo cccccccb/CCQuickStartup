@@ -14,6 +14,7 @@
 #include <QPluginLoader>
 #include <QQmlApplicationEngine>
 #include <QQuickWindow>
+#include <QVersionNumber>
 
 class AppStartupModuleFactory
 {
@@ -123,30 +124,36 @@ void AppStartupInstancePrivate::detachAvailableModulesChange(const QList<AppStar
     }
 
     for (auto it = groups.begin(); it != groups.end(); ++it) {
-        QSet<AppStartupModuleInformation> preloadInfors;
-        QSet<AppStartupModuleInformation> entityInfors;
+        QList<AppStartupModuleInformation> preloadInfors;
+        QList<AppStartupModuleInformation> entityInfors;
 
         for (auto descrpInfo : it.value()) {
             if (descrpInfo.startModule() == AppStartupModuleInformation::Preload)
-                preloadInfors.insert(descrpInfo);
+                preloadInfors.append(descrpInfo);
 
             if (descrpInfo.startModule() == AppStartupModuleInformation::Entity)
-                entityInfors.insert(descrpInfo);
+                entityInfors.append(descrpInfo);
         }
+
+        auto versionLessThan = [](const AppStartupModuleInformation &a, const AppStartupModuleInformation &b) {
+            return QVersionNumber::fromString(a.version()) < QVersionNumber::fromString(b.version());
+        };
+        std::sort(preloadInfors.begin(), preloadInfors.end(), versionLessThan);
+        std::sort(entityInfors.begin(), entityInfors.end(), versionLessThan);
 
         auto preloadIt = preloadInfors.begin();
         auto entityIt = entityInfors.begin();
 
         while (preloadIt != preloadInfors.end() || entityIt != entityInfors.end()) {
-            while (preloadIt != preloadInfors.end() && preloadIt->version() < entityIt->version()) {
+            while (preloadIt != preloadInfors.end() && QVersionNumber::fromString(preloadIt->version()) < QVersionNumber::fromString(entityIt->version())) {
                 ++preloadIt;
             }
 
-            while (entityIt != entityInfors.end() && entityIt->version() < preloadIt->version()) {
-                ++preloadIt;
+            while (entityIt != entityInfors.end() && QVersionNumber::fromString(entityIt->version()) < QVersionNumber::fromString(preloadIt->version())) {
+                ++entityIt;
             }
 
-            if (preloadIt->version() == entityIt->version()) {
+            if (QVersionNumber::fromString(preloadIt->version()) == QVersionNumber::fromString(entityIt->version())) {
                 QSharedPointer<AppStartupModuleGroup> group(new AppStartupModuleGroup({*preloadIt, *entityIt}, qq));
 
                 bool contains = std::any_of(availableModules.begin(), availableModules.end(),
@@ -227,7 +234,7 @@ void AppStartupInstancePrivate::findDefaultModuleGroup()
         if (!group->isValid() || !group->preload().isDefault() || !group->entity().isDefault())
             continue;
 
-        if (!moduleGroup || moduleGroup->entity().version() < group->entity().version())
+        if (!moduleGroup || QVersionNumber::fromString(moduleGroup->entity().version()) < QVersionNumber::fromString(group->entity().version()))
             moduleGroup = group;
     }
 
@@ -306,6 +313,8 @@ bool AppStartupInstancePrivate::resolveInformation(const QJsonObject &obj, AppSt
     info->setAppId(moduleAppId);
     info->setDescriptor(metaDataObject.take("descriptor").toString());
     info->setVersion(metaDataObject.take("version").toString());
+    if (info->descriptor().isEmpty() || info->version().isEmpty())
+        return false;
     info->setDescription(metaDataObject.take("description").toString());
     QStringList featuresList;
     const auto &featuresArray = metaDataObject.take("features").toArray();

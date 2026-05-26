@@ -49,6 +49,7 @@ private:
     explicit FramelessWorker(QObject *parent = nullptr);
 
 private:
+    Q_DISABLE_COPY_MOVE(FramelessWorker)
     static FramelessWorker *    mInstance;
     bool                        mExit = false;
     QList<FramelessEvent *>     mEventQueue;

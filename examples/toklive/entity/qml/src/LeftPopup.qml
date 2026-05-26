@@ -11,12 +11,11 @@ Control {
     implicitWidth: background.implicitWidth
 
     background: Item {
-        id: backItem
         implicitWidth: 90
         clip: true
 
         Image {
-            id: _blurItem
+            id: blurItem
             anchors.fill: parent
             visible: false
             source: "qrc:/leftbackground.jpg"
@@ -24,8 +23,8 @@ Control {
         }
 
         MultiEffect {
-            source: _blurItem
-            anchors.fill: _blurItem
+            source: blurItem
+            anchors.fill: blurItem
             blurEnabled: true
             blurMax: 64
             blur: 1.0
@@ -50,7 +49,8 @@ Control {
             height: parent.height - windowButtonPane.height - 10
 
             Component.onCompleted: {
-                Window.window.Frameless.moveExclude.push(windowButtonPane)
+                if (Window.window)
+                    Window.window.Frameless.moveExclude.push(windowButtonPane)
             }
         }
     }

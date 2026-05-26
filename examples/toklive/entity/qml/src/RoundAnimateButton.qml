@@ -15,18 +15,18 @@ Control {
     signal clicked()
 
     readonly property bool _hoveredIn: hovered || hoveredIn
+    readonly property color _hoveredColor: Qt.lighter(root.backgroundColor, 1.2)
+    readonly property color _pressedColor: Qt.darker(root.backgroundColor, 1.2)
 
     hoverEnabled: true
 
-    state: "UNHOVERED"
     states: [
         State {
             name: "HOVERED"
             when: _hoveredIn
             PropertyChanges {
-                target: root
-                width: Style.item.extraStyle.packHoverButtonSize
-                height: Style.item.extraStyle.packHoverButtonSize
+                root.width: Style.item.extraStyle.packHoverButtonSize
+                root.height: Style.item.extraStyle.packHoverButtonSize
             }
 
             PropertyChanges {
@@ -39,9 +39,8 @@ Control {
             name: "UNHOVERED"
             when: !_hoveredIn
             PropertyChanges {
-                target: root
-                width: Style.item.extraStyle.packButtonSize
-                height: Style.item.extraStyle.packButtonSize
+                root.width: Style.item.extraStyle.packButtonSize
+                root.height: Style.item.extraStyle.packButtonSize
             }
 
             PropertyChanges {
@@ -57,7 +56,7 @@ Control {
 
             anchors.fill: parent
             visible: !_hoveredIn
-            color: pressedIn ? Qt.darker(root.backgroundColor, 1.2) : hovered ? Qt.lighter(root.backgroundColor, 1.2) : root.backgroundColor
+            color: pressedIn ? _pressedColor : hovered ? _hoveredColor : root.backgroundColor
             border.color: Style.item.extraStyle.miniButtonBackgroundBorderColor
             border.width: Style.item.borderWidth
             radius: _backRect.width / 2

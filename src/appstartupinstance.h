@@ -59,6 +59,7 @@ Q_SIGNALS:
     void availableModulesChanged();
 
 private:
+    Q_DISABLE_COPY_MOVE(AppStartupInstance)
     static AppStartupInstance *self;
     QScopedPointer<AppStartupInstancePrivate> dd;
 };

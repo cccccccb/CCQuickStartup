@@ -17,6 +17,8 @@ class EdgeToEdgeModeHelper : public QObject
     QML_NAMED_ELEMENT(EdgeToEdge)
 
 public:
+    explicit EdgeToEdgeModeHelper(QObject *parent = nullptr);
+
     Q_INVOKABLE void enable();
 
     int statusBarHeight() const;
@@ -30,11 +32,12 @@ signals:
 
 private:
     void enableEdgeToEdge();
-    int getStatusBarHeight();
-    int getNavigationBarHeight();
-    float getDeviceDensity();
+    int fetchStatusBarHeight();
+    int fetchNavigationBarHeight();
+    float fetchDeviceDensity();
 
 private:
+    Q_DISABLE_COPY_MOVE(EdgeToEdgeModeHelper)
     QFutureWatcher<QVariant> *m_watcher = nullptr;
     int m_statusBarHeight = 0;
     int m_navigationBarHeight = 0;
