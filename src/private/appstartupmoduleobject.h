@@ -72,7 +72,7 @@ protected:
     AppStartupInstancePrivate *dd = nullptr;
 
     QPluginLoader *_loader = nullptr;
-    AppStartupModuleObject *_binder = nullptr;
+    QPointer<AppStartupModuleObject> _binder = nullptr;
 
     AppStartupModuleInformation _information;
     QSharedPointer<AppStartupModuleGroup> _group;
